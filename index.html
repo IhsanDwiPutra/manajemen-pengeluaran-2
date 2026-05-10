@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./icon-512.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
 
-  <title>Catatan Keuangan</title>
+  <title>Catatan Keuangan & AI</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   
@@ -37,14 +37,9 @@
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-mono);
-      min-height: 100vh;
-      padding: 2rem 1rem 4rem;
-      background-image:
-        radial-gradient(ellipse 60% 40% at 80% 10%, rgba(127,106,248,.12) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 10% 80%, rgba(192,132,252,.08) 0%, transparent 55%);
+      background: var(--bg); color: var(--text); font-family: var(--font-mono); min-height: 100vh; padding: 2rem 1rem 4rem;
+      background-image: radial-gradient(ellipse 60% 40% at 80% 10%, rgba(127,106,248,.12) 0%, transparent 60%),
+                        radial-gradient(ellipse 40% 30% at 10% 80%, rgba(192,132,252,.08) 0%, transparent 55%);
     }
 
     /* ── HEADER & USER PROFILE ── */
@@ -102,9 +97,18 @@
     .stat-card .s-val { font-family: var(--font-head); font-size: 1.3rem; font-weight: 600; word-break: break-all;}
     .stat-card .s-val.green { color: var(--success); } .stat-card .s-val.yellow { color: var(--warning); } .stat-card .s-val.red { color: var(--danger); }
 
-    /* ── FORM ── */
+    /* ── FORM & AI BUTTON ── */
     .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem 2rem; animation: slideUp .5s .15s ease both; }
-    .form-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; letter-spacing: .04em; margin-bottom: 1.4rem; color: var(--muted); text-transform: uppercase; }
+    .form-header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; flex-wrap: wrap; gap: 1rem; }
+    .form-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; margin: 0; }
+    
+    .ai-tools { display: flex; align-items: center; gap: 0.5rem; }
+    .btn-scan { background: linear-gradient(135deg, #3b82f6, #8b5cf6); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: var(--font-head); font-size: .75rem; font-weight: 700; letter-spacing: .05em; padding: .55rem 1rem; text-transform: uppercase; transition: transform .15s, box-shadow .2s; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+    .btn-scan:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); }
+    .btn-scan:active { transform: translateY(0); }
+    .btn-api-key { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); border-radius: 8px; padding: 0.45rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;}
+    .btn-api-key:hover { background: rgba(127,106,248,.1); color: var(--accent2); border-color: var(--accent2); }
+
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .form-group { display: flex; flex-direction: column; gap: .5rem; }
     .form-group.full { grid-column: 1 / -1; }
@@ -120,7 +124,7 @@
     select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
     select option { background: var(--surface2); }
 
-    .btn-add { grid-column: 1 / -1; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: var(--font-head); font-size: .9rem; font-weight: 700; letter-spacing: .06em; padding: .85rem 1.5rem; text-transform: uppercase; transition: opacity .2s, transform .15s, box-shadow .2s; box-shadow: 0 4px 20px rgba(127,106,248,.35); }
+    .btn-add { grid-column: 1 / -1; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: var(--font-head); font-size: .9rem; font-weight: 700; letter-spacing: .06em; padding: .85rem 1.5rem; text-transform: uppercase; transition: opacity .2s, transform .15s, box-shadow .2s; box-shadow: 0 4px 20px rgba(127,106,248,.35); margin-top: 0.5rem;}
     .btn-add:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(127,106,248,.45); }
     .btn-add:active { transform: translateY(0); }
     .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -160,9 +164,10 @@
     .empty .icon { font-size: 2.5rem; margin-bottom: .8rem; opacity: .4; }
     .empty p { font-size: .82rem; letter-spacing: .06em; }
     .loader { display: inline-block; width: 30px; height: 30px; border: 3px solid rgba(127,106,248,.2); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; margin-bottom: 1rem; }
+    .loader-ai { border-top-color: #8b5cf6; border-right-color: #3b82f6; width: 40px; height: 40px; border-width: 4px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── CHART ── */
+    /* ── CHART & TOOLS ── */
     .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem 2rem; animation: slideUp .5s .18s ease both; }
     .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: .6rem; }
     .chart-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
@@ -182,11 +187,6 @@
     .chart-empty .icon { font-size: 2rem; margin-bottom: .6rem; opacity: .35; }
     .chart-empty p { font-size: .78rem; letter-spacing: .06em; }
 
-    @media (max-width: 580px) {
-      .chart-body { grid-template-columns: 1fr; } .chart-canvas-wrap { max-width: 220px; } .legend-val { display: none; }
-    }
-
-    /* ── DATA TOOLS ── */
     .tools-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.6rem 2rem; animation: slideUp .5s .25s ease both; }
     .tools-header { display: flex; align-items: center; gap: .6rem; margin-bottom: 1.2rem; }
     .tools-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; }
@@ -228,7 +228,7 @@
       .form-grid { grid-template-columns: 1fr; } .btn-add { grid-column: 1; } th, td { padding: .75rem 1rem; }
       .total-card { padding: 1.5rem; flex-direction: column; gap: 1rem; } .table-header { padding: 1rem; }
       .tools-grid { grid-template-columns: 1fr; } .toast-container { bottom: 1rem; right: 1rem; left: 1rem; align-items: center; }
-      .user-name { display: none; } 
+      .user-name { display: none; } .chart-body { grid-template-columns: 1fr; } .chart-canvas-wrap { max-width: 220px; } .legend-val { display: none; }
     }
   </style>
 </head>
@@ -240,7 +240,6 @@
     <div class="tagline">Manajer Keuangan Pribadi</div>
   </div>
   
-  <!-- PROFIL USER -->
   <div class="user-profile" id="userProfile">
     <div class="user-info">
       <span class="user-name" id="userName">User</span>
@@ -250,7 +249,6 @@
   </div>
 </header>
 
-<!-- LAYAR LOGIN -->
 <div class="login-screen" id="loginScreen">
   <div class="ls-icon">💳</div>
   <h1 class="ls-title">Selamat Datang di SPENT.</h1>
@@ -262,7 +260,6 @@
   </button>
 </div>
 
-<!-- APLIKASI UTAMA -->
 <div class="wrapper" id="mainApp">
 
   <!-- TOTAL CARD -->
@@ -307,11 +304,21 @@
     </div>
   </div>
 
-  <!-- FORM -->
+  <!-- FORM WITH AI SCANNER -->
   <div class="form-card">
-    <div class="form-title">+ Tambah Transaksi</div>
+    <div class="form-header-wrap">
+      <h2 class="form-title">+ Tambah Transaksi</h2>
+      <div class="ai-tools">
+        <button class="btn-scan" onclick="document.getElementById('receiptScanner').click()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h5v5"/><path d="M9.5 20h-5v-5"/><path d="M4 14.5v-5h5"/><path d="M20 9.5v5h-5"/><circle cx="12" cy="12" r="3"/></svg>
+          Scan Struk AI
+        </button>
+        <button class="btn-api-key" onclick="promptApiKey()" title="Pengaturan API Key">🔓</button>
+      </div>
+    </div>
+    <input type="file" id="receiptScanner" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptScan(event)"/>
+
     <div class="form-grid">
-      
       <div class="form-group full">
         <label for="tipeInput">Jenis Transaksi</label>
         <select id="tipeInput" onchange="updateKategoriOptions()">
@@ -336,9 +343,7 @@
       
       <div class="form-group">
         <label for="kategoriInput">Kategori</label>
-        <select id="kategoriInput">
-          <!-- Kategori diisi dinamis oleh JS -->
-        </select>
+        <select id="kategoriInput"></select>
       </div>
       
       <div class="form-group full">
@@ -403,10 +408,6 @@
         Impor Data (CSV)
       </button>
     </div>
-    <div class="tools-hint">
-      <strong>Ekspor</strong> — mengunduh semua data sebagai file <code>.csv</code> yang bisa dibuka di Excel / Sheets.<br>
-      <strong>Impor</strong> — unggah file CSV hasil ekspor untuk memulihkan atau memindahkan data. <strong>Data yang ada di Cloud akan terganti secara otomatis.</strong>
-    </div>
   </div>
 
 </div>
@@ -422,6 +423,7 @@
   <div class="toast" id="toastImport" style="border-color:#60a5fa;color:#60a5fa;">📤 Sinkronisasi Impor selesai</div>
   <div class="toast" id="toastErr"    style="border-color:var(--warning);color:var(--warning);">❌ Terjadi kesalahan jaringan</div>
   <div class="toast" id="toastLogin"  style="border-color:#a78bfa;color:#a78bfa;">👋 Selamat datang kembali</div>
+  <div class="toast" id="toastAi"     style="border-color:#8b5cf6;color:#8b5cf6;">✨ Berhasil membaca struk!</div>
 </div>
 
 <!-- UNIVERSAL MODAL -->
@@ -434,13 +436,21 @@
   </div>
 </div>
 
+<!-- AI LOADING MODAL -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal-box" style="padding: 3rem 2rem;">
+    <div class="loader loader-ai"></div>
+    <h3 class="modal-title" style="margin-top:1rem;">AI Sedang Membaca...</h3>
+    <p class="modal-body" style="margin-bottom:0;">Menganalisis foto struk Anda, mohon tunggu sebentar.</p>
+  </div>
+</div>
+
 <!-- FIREBASE CLOUD SAVE MODULE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  // ── Konfigurasi Cloud ── 
   const firebaseConfig = {
   apiKey: "AIzaSyAXjaGDcqGOS0zxHObEc4kJN120p62lm4U",
   authDomain: "spent-app-e1141.firebaseapp.com",
@@ -448,7 +458,7 @@
   storageBucket: "spent-app-e1141.firebasestorage.app",
   messagingSenderId: "113195094216",
   appId: "1:113195094216:web:c735f7eae578efa6b395fd"
-};
+  };
   const appId = 'spent-pwa-local';
   
   const app = initializeApp(firebaseConfig);
@@ -464,9 +474,12 @@
   let isDataLoaded = false;
   let unsubscribeSnapshot = null;
 
+  // ── Gemini API (AI Studio) ──
+  const geminiApiKey = ""; // KOSONGKAN INI. API Key diambil dari localStorage user.
+
   document.getElementById('tanggalInput').valueAsDate = new Date();
 
-  // ── Kategori Config: Pisah antara Pemasukan & Pengeluaran ──
+  // ── Kategori Config ──
   const katConfig = {
     pengeluaran: {
       makanan:       { label: 'Makanan',      cls: 'badge-makanan',      icon: '🍜', color: '#fbbf24' },
@@ -488,21 +501,12 @@
     const tipe = document.getElementById('tipeInput').value;
     const select = document.getElementById('kategoriInput');
     select.innerHTML = '<option value="">— Pilih kategori —</option>';
-    
     const kats = katConfig[tipe];
-    for (const key in kats) {
-      select.innerHTML += `<option value="${key}">${kats[key].icon} ${kats[key].label}</option>`;
-    }
+    for (const key in kats) select.innerHTML += `<option value="${key}">${kats[key].icon} ${kats[key].label}</option>`;
   };
-  
-  // Inisialisasi awal Dropdown Kategori
   window.updateKategoriOptions();
 
-  // ── Helpers ──
-  const fmtCurrency = n => {
-    const sign = n < 0 ? '-' : '';
-    return sign + 'Rp ' + Math.abs(Math.round(n)).toLocaleString('id-ID');
-  };
+  const fmtCurrency = n => { const sign = n < 0 ? '-' : ''; return sign + 'Rp ' + Math.abs(Math.round(n)).toLocaleString('id-ID'); };
   function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   window.formatRupiahInput = function(inputElement) {
@@ -511,17 +515,125 @@
     inputElement.value = val !== '' ? parseInt(val, 10).toLocaleString('id-ID') : '';
   };
 
+  // ── Integrasi AI (Gemini Vision) ──
+  window.promptApiKey = function() {
+    const currentKey = localStorage.getItem('gemini_api_key') || '';
+    const key = prompt("PENGATURAN AI:\nMasukkan API Key dari Google AI Studio untuk mengaktifkan fitur Scan Struk otomatis.", currentKey);
+    if (key !== null) {
+      localStorage.setItem('gemini_api_key', key.trim());
+      if (key.trim()) alert("API Key berhasil disimpan! Fitur Scan Struk siap digunakan.");
+    }
+  };
+
+  window.handleReceiptScan = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    event.target.value = ''; // Reset input
+
+    const savedKey = geminiApiKey || localStorage.getItem('gemini_api_key');
+    if (!savedKey) {
+      alert("API Key Google AI Studio belum diatur!\nSilakan klik ikon gembok 🔓 di sebelah tombol Scan Struk untuk memasukkan kunci Anda.");
+      return;
+    }
+
+    const aiModal = document.getElementById('aiModal');
+    aiModal.classList.add('show');
+
+    try {
+      const base64Data = await resizeAndConvertImage(file);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${savedKey}`;
+      
+      const payload = {
+        contents: [{
+          role: "user",
+          parts: [
+            { text: "Anda adalah asisten keuangan pintar. Analisis foto struk ini secara teliti. Cari dan ekstrak: 1. Nama toko/merchant. 2. Total harga akhir belanja (hanya angka bulat). 3. Tebak kategorinya (HANYA pilih salah satu dari: makanan, transportasi, hiburan, kesehatan, belanja, lainnya). Kembalikan HANYA format JSON valid seperti contoh ini: {\"nama\": \"Indomaret\", \"nominal\": 56000, \"kategori\": \"belanja\"} tanpa markdown." },
+            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+          ]
+        }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: { type: "OBJECT", properties: { nama: { type: "STRING" }, nominal: { type: "NUMBER" }, kategori: { type: "STRING" } } }
+        }
+      };
+
+      // Exponential backoff untuk panggilan API AI
+      let resultJSON = null;
+      let delays = [1000, 2000, 4000];
+      for (let i = 0; i <= delays.length; i++) {
+        try {
+          const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          if (!response.ok) {
+            if(response.status === 400) throw new Error("API Key tidak valid.");
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if(!textResult) throw new Error("AI tidak mengenali struk.");
+          resultJSON = JSON.parse(textResult);
+          break; // Sukses, keluar dari loop
+        } catch (err) {
+          if (i === delays.length) throw err;
+          await new Promise(r => setTimeout(r, delays[i]));
+        }
+      }
+
+      if (resultJSON) {
+        // Otomatis ubah tipe ke pengeluaran
+        document.getElementById('tipeInput').value = 'pengeluaran';
+        window.updateKategoriOptions();
+
+        // Isi form otomatis
+        document.getElementById('namaInput').value = resultJSON.nama || 'Struk Terbaca';
+        const nominal = parseInt(resultJSON.nominal) || 0;
+        document.getElementById('nominalInputVal').value = nominal;
+        document.getElementById('nominalInputDisplay').value = nominal > 0 ? nominal.toLocaleString('id-ID') : '';
+        
+        const katRaw = (resultJSON.kategori || '').toLowerCase();
+        const validKats = Object.keys(katConfig.pengeluaran);
+        document.getElementById('kategoriInput').value = validKats.includes(katRaw) ? katRaw : 'lainnya';
+
+        showToast('toastAi');
+      }
+
+    } catch (error) {
+      console.error(error);
+      alert("Gagal memproses struk: " + error.message + "\n\nPastikan foto jelas dan API Key Anda valid.");
+    } finally {
+      aiModal.classList.remove('show');
+    }
+  };
+
+  function resizeAndConvertImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 1000;
+          let width = img.width, height = img.height;
+          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
+          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+          canvas.width = width; canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); // Kembalikan hanya Base64 string
+        };
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   // ── Sistem Login / Logout Google ──
   window.loginGoogle = async function() {
     const btnLogin = document.getElementById('btnLogin');
     btnLogin.disabled = true; btnLogin.innerHTML = 'Memuat...';
-    try {
-      await signInWithPopup(auth, googleProvider); showToast('toastLogin');
-    } catch (error) {
-      console.error(error); showModal({ icon: '❌', title: 'Login Gagal', body: 'Terjadi kesalahan. Pastikan Anda memiliki koneksi internet.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' });
-    } finally {
-      btnLogin.disabled = false; btnLogin.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Masuk dengan Google';
-    }
+    try { await signInWithPopup(auth, googleProvider); showToast('toastLogin'); } 
+    catch (error) { showModal({ icon: '❌', title: 'Login Gagal', body: 'Terjadi kesalahan.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' }); } 
+    finally { btnLogin.disabled = false; btnLogin.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Masuk dengan Google'; }
   };
 
   window.logoutGoogle = async function() {
@@ -558,10 +670,7 @@
   // ── Update Logic & Rendering ──
   window.applyMonthFilter = function() { currentMonthFilter = document.getElementById('monthFilter').value; refreshUI(); }
 
-  function getFilteredData() {
-    if (currentMonthFilter === 'all') return allData;
-    return allData.filter(d => d.tgl.startsWith(currentMonthFilter));
-  }
+  function getFilteredData() { return currentMonthFilter === 'all' ? allData : allData.filter(d => d.tgl.startsWith(currentMonthFilter)); }
 
   function updateMonthDropdown() {
     const select = document.getElementById('monthFilter'), months = new Set();
@@ -572,8 +681,7 @@
     let optionsHTML = `<option value="all">Semua Waktu</option>`;
     sortedMonths.forEach(m => {
       const [year, month] = m.split('-');
-      const label = new Date(year, month - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-      optionsHTML += `<option value="${m}">${label}</option>`;
+      optionsHTML += `<option value="${m}">${new Date(year, month - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</option>`;
     });
     select.innerHTML = optionsHTML;
     const todayYYYYMM = new Date().toISOString().substring(0, 7);
@@ -586,328 +694,149 @@
     if (!isDataLoaded) return; 
     updateMonthDropdown();
     const dataToRender = getFilteredData();
-    renderTable(dataToRender);
-    updateStats(dataToRender);
-    updateChart(dataToRender);
+    renderTable(dataToRender); updateStats(dataToRender); updateChart(dataToRender);
   }
 
   function updateStats(data) {
     let totalMasuk = 0, totalKeluar = 0, maxIn = 0, maxOut = 0;
-
     data.forEach(d => {
-      const t = d.tipe || 'pengeluaran'; // Fallback data lama = pengeluaran
-      if (t === 'pemasukan') {
-        totalMasuk += d.nominal;
-        if (d.nominal > maxIn) maxIn = d.nominal;
-      } else {
-        totalKeluar += d.nominal;
-        if (d.nominal > maxOut) maxOut = d.nominal;
-      }
+      const t = d.tipe || 'pengeluaran';
+      if (t === 'pemasukan') { totalMasuk += d.nominal; if (d.nominal > maxIn) maxIn = d.nominal; } 
+      else { totalKeluar += d.nominal; if (d.nominal > maxOut) maxOut = d.nominal; }
     });
-
-    const saldo = totalMasuk - totalKeluar;
-
-    document.getElementById('totalAmount').textContent = fmtCurrency(saldo);
+    document.getElementById('totalAmount').textContent = fmtCurrency(totalMasuk - totalKeluar);
     document.getElementById('totMasuk').textContent    = fmtCurrency(totalMasuk);
     document.getElementById('totKeluar').textContent   = fmtCurrency(totalKeluar);
-    
     document.getElementById('txCount').textContent = data.length;
     document.getElementById('maxIn').textContent   = fmtCurrency(maxIn);
     document.getElementById('maxOut').textContent  = fmtCurrency(maxOut);
     document.getElementById('countBadge').textContent = data.length + ' entri';
-    
     document.getElementById('totalLabel').textContent = currentMonthFilter === 'all' ? 'Sisa Saldo Anda (Semua)' : 'Sisa Saldo Bulan Ini';
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('tableBody');
-    if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="icon">🧾</div><p>Belum ada transaksi tersimpan.</p></div></td></tr>`;
-      return;
-    }
-    
+    if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="icon">🧾</div><p>Belum ada transaksi tersimpan.</p></div></td></tr>`; return; }
     const sortedData = [...data].sort((a,b) => new Date(b.tgl) - new Date(a.tgl) || (b.createdAt || 0) - (a.createdAt || 0));
-
     tbody.innerHTML = sortedData.map((d) => {
-      const t = d.tipe || 'pengeluaran'; // Fallback data lama
-      const k = katConfig[t][d.kat] || katConfig[t].lainnya;
-      const tglFmt = new Date(d.tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
-      
-      const cls = t === 'pemasukan' ? 'masuk' : 'keluar';
-      const prefix = t === 'pemasukan' ? '+ ' : '- ';
-      
-      return `
-        <tr>
+      const t = d.tipe || 'pengeluaran', k = katConfig[t][d.kat] || katConfig[t].lainnya;
+      const cls = t === 'pemasukan' ? 'masuk' : 'keluar', prefix = t === 'pemasukan' ? '+ ' : '- ';
+      return `<tr>
           <td class="td-name">${escHtml(d.nama)}</td>
           <td><span class="badge ${k.cls}">${k.icon} ${k.label}</span></td>
-          <td class="td-date">${tglFmt}</td>
+          <td class="td-date">${new Date(d.tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })}</td>
           <td class="td-amount ${cls}" style="text-align:right">${prefix}${fmtCurrency(d.nominal)}</td>
-          <td style="text-align:center">
-            <button class="btn-del-red" onclick="konfirmasiHapus('${d.id}', '${escHtml(d.nama).replace(/'/g,"\\'")}')">🗑</button>
-          </td>
+          <td style="text-align:center"><button class="btn-del-red" onclick="konfirmasiHapus('${d.id}', '${escHtml(d.nama).replace(/'/g,"\\'")}')">🗑</button></td>
         </tr>`;
     }).join('');
   }
 
   function updateChart(data) {
-    const chartBody = document.getElementById('chartBody');
-    
-    // CHART HANYA UNTUK PENGELUARAN (Biar bersih)
-    const expData = data.filter(d => (d.tipe || 'pengeluaran') === 'pengeluaran');
-    
-    const grouped = {};
-    expData.forEach(d => { grouped[d.kat] = (grouped[d.kat] || 0) + d.nominal; });
-    const keys  = Object.keys(grouped);
-    const total = expData.reduce((s, d) => s + d.nominal, 0);
+    const chartBody = document.getElementById('chartBody'), expData = data.filter(d => (d.tipe || 'pengeluaran') === 'pengeluaran');
+    const grouped = {}; expData.forEach(d => { grouped[d.kat] = (grouped[d.kat] || 0) + d.nominal; });
+    const keys = Object.keys(grouped), total = expData.reduce((s, d) => s + d.nominal, 0);
 
     if (keys.length === 0) {
       if (pieChart) { pieChart.destroy(); pieChart = null; }
-      chartBody.innerHTML = `<div class="chart-empty"><div class="icon">📊</div><p>Belum ada data pengeluaran untuk grafik.</p></div>`;
-      return;
+      chartBody.innerHTML = `<div class="chart-empty"><div class="icon">📊</div><p>Belum ada data pengeluaran untuk grafik.</p></div>`; return;
     }
 
     const labels = keys.map(k => (katConfig.pengeluaran[k] || katConfig.pengeluaran.lainnya).icon + ' ' + (katConfig.pengeluaran[k] || katConfig.pengeluaran.lainnya).label);
-    const values = keys.map(k => grouped[k]);
-    const colors = keys.map(k => (katConfig.pengeluaran[k] || katConfig.pengeluaran.lainnya).color);
+    const values = keys.map(k => grouped[k]), colors = keys.map(k => (katConfig.pengeluaran[k] || katConfig.pengeluaran.lainnya).color);
 
     const legendHTML = keys.map(k => {
       const cfg = katConfig.pengeluaran[k] || katConfig.pengeluaran.lainnya;
-      const pct = total > 0 ? ((grouped[k] / total) * 100).toFixed(1) : '0.0';
-      return `
-        <div class="legend-item">
-          <span class="legend-dot" style="background:${cfg.color}"></span>
-          <span class="legend-name">${cfg.icon} ${cfg.label}</span>
-          <span class="legend-pct">${pct}%</span>
-          <span class="legend-val">${fmtCurrency(grouped[k])}</span>
-        </div>`;
+      return `<div class="legend-item"><span class="legend-dot" style="background:${cfg.color}"></span><span class="legend-name">${cfg.icon} ${cfg.label}</span><span class="legend-pct">${total > 0 ? ((grouped[k] / total) * 100).toFixed(1) : '0.0'}%</span><span class="legend-val">${fmtCurrency(grouped[k])}</span></div>`;
     }).join('');
 
     if (!pieChart || !document.getElementById('pieCanvas')) {
-      chartBody.innerHTML = `
-        <div class="chart-canvas-wrap">
-          <canvas id="pieCanvas"></canvas>
-          <div class="chart-center-label">
-            <span class="cl-count" id="clCount">${expData.length}</span>
-            <span class="cl-sub">pengeluaran</span>
-          </div>
-        </div>
-        <div class="chart-legend" id="chartLegend">${legendHTML}</div>`;
-
-      const ctx = document.getElementById('pieCanvas').getContext('2d');
-      pieChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels, datasets: [{ data: values, backgroundColor: colors.map(c => c + 'cc'), borderColor: colors.map(c => c + 'bb'), borderWidth: 2, hoverOffset: 8 }] },
-        options: { responsive: true, cutout: '68%', animation: { animateRotate: true, duration: 600 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c1c26', borderColor: '#2a2a38', borderWidth: 1, titleColor: '#e8e8f0', bodyColor: '#9ca3af', padding: 12, callbacks: { label: ctx => `  ${fmtCurrency(ctx.parsed)}  (${total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0'}%)` } } } }
-      });
+      chartBody.innerHTML = `<div class="chart-canvas-wrap"><canvas id="pieCanvas"></canvas><div class="chart-center-label"><span class="cl-count" id="clCount">${expData.length}</span><span class="cl-sub">pengeluaran</span></div></div><div class="chart-legend" id="chartLegend">${legendHTML}</div>`;
+      pieChart = new Chart(document.getElementById('pieCanvas').getContext('2d'), { type: 'doughnut', data: { labels, datasets: [{ data: values, backgroundColor: colors.map(c => c + 'cc'), borderColor: colors.map(c => c + 'bb'), borderWidth: 2, hoverOffset: 8 }] }, options: { responsive: true, cutout: '68%', animation: { animateRotate: true, duration: 600 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c1c26', borderColor: '#2a2a38', borderWidth: 1, titleColor: '#e8e8f0', bodyColor: '#9ca3af', padding: 12, callbacks: { label: ctx => `  ${fmtCurrency(ctx.parsed)}  (${total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0'}%)` } } } } });
     } else {
-      pieChart.data.labels = labels; pieChart.data.datasets[0].data = values;
-      pieChart.data.datasets[0].backgroundColor = colors.map(c => c + 'cc'); pieChart.data.datasets[0].borderColor = colors.map(c => c + 'bb');
-      pieChart.update();
-      document.getElementById('chartLegend').innerHTML = legendHTML;
-      document.getElementById('clCount').textContent = expData.length;
+      pieChart.data.labels = labels; pieChart.data.datasets[0].data = values; pieChart.data.datasets[0].backgroundColor = colors.map(c => c + 'cc'); pieChart.data.datasets[0].borderColor = colors.map(c => c + 'bb');
+      pieChart.update(); document.getElementById('chartLegend').innerHTML = legendHTML; document.getElementById('clCount').textContent = expData.length;
     }
   }
 
-  // ── Aksi Cloud: Tambah / Hapus ──
+  // ── Aksi Cloud ──
   window.tambahTransaksi = async function() {
-    const tipe = document.getElementById('tipeInput').value;
-    const nama = document.getElementById('namaInput').value.trim();
-    const nominal = parseFloat(document.getElementById('nominalInputVal').value);
-    const kat = document.getElementById('kategoriInput').value;
-    const tgl = document.getElementById('tanggalInput').value;
-
-    const shake = id => {
-      const el = document.getElementById(id); el.style.borderColor = 'var(--danger)'; el.style.boxShadow = '0 0 0 3px rgba(248,113,113,.25)'; el.focus();
-      setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800);
-    };
-
-    if (!nama) return shake('namaInput');
-    if (!nominal || nominal <= 0) return shake('nominalInputDisplay');
-    if (!kat) return shake('kategoriInput');
-    if (!tgl) return shake('tanggalInput');
-    if (!currentUser) { showToast('toastErr'); return; }
-
-    const btn = document.getElementById('btnAdd');
-    btn.disabled = true; btn.textContent = 'Menyimpan...';
-
+    const tipe = document.getElementById('tipeInput').value, nama = document.getElementById('namaInput').value.trim(), nominal = parseFloat(document.getElementById('nominalInputVal').value), kat = document.getElementById('kategoriInput').value, tgl = document.getElementById('tanggalInput').value;
+    const shake = id => { const el = document.getElementById(id); el.style.borderColor = 'var(--danger)'; el.style.boxShadow = '0 0 0 3px rgba(248,113,113,.25)'; el.focus(); setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800); };
+    if (!nama) return shake('namaInput'); if (!nominal || nominal <= 0) return shake('nominalInputDisplay'); if (!kat) return shake('kategoriInput'); if (!tgl) return shake('tanggalInput');
+    if (!currentUser) return showToast('toastErr');
+    const btn = document.getElementById('btnAdd'); btn.disabled = true; btn.textContent = 'Menyimpan...';
     try {
-      const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
-      await addDoc(colRef, { tipe, nama, nominal, kat, tgl, createdAt: Date.now() });
-      
-      const newMonth = tgl.substring(0,7);
-      currentMonthFilter = newMonth;
-      
-      showToast('toastAdd');
-      document.getElementById('namaInput').value = '';
-      document.getElementById('nominalInputDisplay').value = '';
-      document.getElementById('nominalInputVal').value = '';
-      document.getElementById('kategoriInput').value = '';
-    } catch (err) {
-      console.error(err);
-      showToast('toastErr');
-    } finally {
-      btn.disabled = false; btn.textContent = 'Simpan Transaksi';
-    }
+      await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), { tipe, nama, nominal, kat, tgl, createdAt: Date.now() });
+      currentMonthFilter = tgl.substring(0,7); showToast('toastAdd');
+      document.getElementById('namaInput').value = ''; document.getElementById('nominalInputDisplay').value = ''; document.getElementById('nominalInputVal').value = ''; document.getElementById('kategoriInput').value = '';
+    } catch (err) { showToast('toastErr'); } finally { btn.disabled = false; btn.textContent = 'Simpan Transaksi'; }
   };
 
-  window.konfirmasiHapus = function(id, nama) {
-    showModal({
-      icon: '⚠️', title: 'Hapus Transaksi?',
-      body: `Apakah Anda yakin ingin menghapus <strong>"${nama}"</strong> dari riwayat Anda?`,
-      btnConfirmText: 'Hapus Data', btnConfirmClass: 'btn-confirm-danger',
-      onConfirm: async () => {
-        if (!currentUser) return;
-        try {
-          await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', id));
-          showToast('toastDel');
-        } catch(e) { console.error(e); showToast('toastErr'); }
-      }
-    });
-  };
+  window.konfirmasiHapus = function(id, nama) { showModal({ icon: '⚠️', title: 'Hapus Transaksi?', body: `Hapus <strong>"${nama}"</strong> dari riwayat?`, btnConfirmText: 'Hapus Data', btnConfirmClass: 'btn-confirm-danger', onConfirm: async () => { try { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', id)); showToast('toastDel'); } catch(e) { showToast('toastErr'); } } }); };
 
-  // ── Ekspor & Impor (Sadar Tipe) ──
+  // ── Ekspor & Impor ──
   window.eksporCSV = function() {
-    if (allData.length === 0) return showModal({ icon: 'ℹ️', title: 'Data Kosong', body: 'Tidak ada data di Cloud untuk diekspor.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok' });
-    const BOM = '\uFEFF', COLS = ['Tipe', 'Nama', 'Kategori', 'Tanggal', 'Nominal'];
+    if (allData.length === 0) return showModal({ icon: 'ℹ️', title: 'Data Kosong', body: 'Tidak ada data untuk diekspor.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok' });
     const esc = v => { const s = String(v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    
-    const rows = allData.map(d => {
-      const t = d.tipe || 'pengeluaran';
-      return [ 
-        esc(t), 
-        esc(d.nama), 
-        esc((katConfig[t][d.kat] || katConfig[t].lainnya).label), 
-        esc(d.tgl), 
-        esc(d.nominal) 
-      ].join(',');
-    });
-    
-    const csv = BOM + [COLS.join(','), ...rows].join('\r\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob), a = document.createElement('a');
-    a.href = url; a.download = `pembukuan_cloud_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-    showToast('toastExport');
+    const rows = allData.map(d => [ esc(d.tipe || 'pengeluaran'), esc(d.nama), esc((katConfig[d.tipe||'pengeluaran'][d.kat] || katConfig[d.tipe||'pengeluaran'].lainnya).label), esc(d.tgl), esc(d.nominal) ].join(','));
+    const blob = new Blob(['\uFEFF' + ['Tipe,Nama,Kategori,Tanggal,Nominal'].concat(rows).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `pembukuan_cloud_${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); showToast('toastExport');
   };
 
   window.triggerImport = function() {
-    if (allData.length > 0) {
-      showModal({
-        icon: '⚠️', title: 'Timpa Data Cloud?',
-        body: `Anda memiliki <strong>${allData.length} entri</strong>. Mengimpor file akan <strong>MENGHAPUS</strong> semua data saat ini.`,
-        btnCancelText: 'Batal', btnConfirmText: 'Ya, Timpa Data', btnConfirmClass: 'btn-confirm-warn',
-        onConfirm: () => document.getElementById('csvFileInput').click()
-      });
-    } else {
-      document.getElementById('csvFileInput').click();
-    }
+    if (allData.length > 0) showModal({ icon: '⚠️', title: 'Timpa Data Cloud?', body: `Anda memiliki <strong>${allData.length} entri</strong>. Mengimpor file akan <strong>MENGHAPUS</strong> semua data saat ini.`, btnCancelText: 'Batal', btnConfirmText: 'Ya, Timpa Data', btnConfirmClass: 'btn-confirm-warn', onConfirm: () => document.getElementById('csvFileInput').click() });
+    else document.getElementById('csvFileInput').click();
   };
 
   window.prosesImportCSV = function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    event.target.value = '';
-
+    const file = event.target.files[0]; if (!file) return; event.target.value = '';
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const text = e.target.result.replace(/^\uFEFF/, ''), lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
-        if (lines.length < 2) throw new Error('File kosong atau hanya header.');
+        const lines = e.target.result.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim() !== ''); if (lines.length < 2) throw new Error('File kosong atau hanya header.');
         const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-        
-        // Versi baru butuh 'tipe', tapi kita tetap izinkan CSV versi lama (fallback ke pengeluaran)
         const iTipe = header.indexOf('tipe'), iNama = header.indexOf('nama'), iKat = header.indexOf('kategori'), iTgl = header.indexOf('tanggal'), iNom = header.indexOf('nominal');
-        
         if(iNama < 0 || iTgl < 0 || iNom < 0) throw new Error("Kolom Nama, Tanggal, atau Nominal tidak ditemukan.");
-
-        // Pemetaan kategori cerdas (biar tidak salah masuk kotak)
         const labelToKey = { pengeluaran: {}, pemasukan: {} };
-        Object.entries(katConfig.pengeluaran).forEach(([k, v]) => labelToKey.pengeluaran[v.label.toLowerCase()] = k);
-        Object.entries(katConfig.pemasukan).forEach(([k, v]) => labelToKey.pemasukan[v.label.toLowerCase()] = k);
+        Object.entries(katConfig.pengeluaran).forEach(([k, v]) => labelToKey.pengeluaran[v.label.toLowerCase()] = k); Object.entries(katConfig.pemasukan).forEach(([k, v]) => labelToKey.pemasukan[v.label.toLowerCase()] = k);
 
-        function parseCSVLine(line) {
-          const result = []; let cur = '', inQ = false;
-          for (let i=0; i<line.length; i++) {
-            const ch = line[i];
-            if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ = !inQ; }
-            else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
-            else cur += ch;
-          }
-          result.push(cur.trim()); return result;
-        }
-
+        function parseCSV(line) { const res = []; let cur = '', inQ = false; for (let i=0; i<line.length; i++) { const ch = line[i]; if (ch === '"') { if (inQ && line[i+1]==='"') { cur+='"'; i++; } else inQ = !inQ; } else if (ch === ',' && !inQ) { res.push(cur.trim()); cur = ''; } else cur += ch; } res.push(cur.trim()); return res; }
+        
         const imported = [], errors = [];
         lines.slice(1).forEach((line, idx) => {
-          const cols = parseCSVLine(line);
-          const nom = parseFloat(cols[iNom]);
-          const tipe = (iTipe >= 0 && cols[iTipe]) ? cols[iTipe].toLowerCase().trim() : 'pengeluaran';
-          const validTipe = (tipe === 'pemasukan' || tipe === 'pengeluaran') ? tipe : 'pengeluaran';
-          
-          if (!cols[iNama]) return errors.push(`Baris ${idx+2}: Nama kosong`);
-          if (isNaN(nom)||nom<=0) return errors.push(`Baris ${idx+2}: Nominal salah`);
-          if (!/^\d{4}-\d{2}-\d{2}$/.test(cols[iTgl])) return errors.push(`Baris ${idx+2}: Format tgl salah`);
-          
-          const rawKat = (cols[iKat]||'').toLowerCase().trim();
-          const kat = labelToKey[validTipe][rawKat] || 'lainnya';
-
-          imported.push({ tipe: validTipe, nama: cols[iNama], kat: kat, tgl: cols[iTgl], nominal: nom, createdAt: Date.now() + idx });
+          const cols = parseCSV(line), nom = parseFloat(cols[iNom]), tipe = (iTipe >= 0 && cols[iTipe]) ? cols[iTipe].toLowerCase().trim() : 'pengeluaran', validTipe = (tipe === 'pemasukan' || tipe === 'pengeluaran') ? tipe : 'pengeluaran';
+          if (!cols[iNama]) return errors.push(`Baris ${idx+2}: Nama kosong`); if (isNaN(nom)||nom<=0) return errors.push(`Baris ${idx+2}: Nominal salah`); if (!/^\d{4}-\d{2}-\d{2}$/.test(cols[iTgl])) return errors.push(`Baris ${idx+2}: Format tgl salah`);
+          imported.push({ tipe: validTipe, nama: cols[iNama], kat: labelToKey[validTipe][(cols[iKat]||'').toLowerCase().trim()] || 'lainnya', tgl: cols[iTgl], nominal: nom, createdAt: Date.now() + idx });
         });
 
-        if (imported.length === 0) throw new Error('Tidak ada baris valid.');
-        if (!currentUser) throw new Error('Anda belum terkoneksi ke layanan Cloud.');
-        
+        if (imported.length === 0) throw new Error('Tidak ada baris valid.'); if (!currentUser) throw new Error('Anda belum terkoneksi ke Cloud.');
         document.getElementById('btnImport').disabled = true; document.getElementById('btnImport').textContent = 'Mengunggah...';
 
-        const deletePromises = allData.map(d => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', d.id)));
-        await Promise.all(deletePromises);
-
+        await Promise.all(allData.map(d => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', d.id))));
         const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
-        const addPromises = imported.map(d => addDoc(colRef, d));
-        await Promise.all(addPromises);
+        await Promise.all(imported.map(d => addDoc(colRef, d)));
 
         currentMonthFilter = 'all'; showToast('toastImport');
         if (errors.length > 0) showModal({ icon: '⚠️', title: 'Impor Selesai dengan Peringatan', body: `Beberapa baris dilewati:\n${errors.slice(0,3).join('\n')}`, btnConfirmText: 'Mengerti', btnConfirmClass: 'btn-confirm-warn' });
-      } catch (err) {
-        showModal({ icon: '❌', title: 'Gagal Impor', body: err.message, btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' });
-      } finally {
-        document.getElementById('btnImport').disabled = false;
-        document.getElementById('btnImport').innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Impor Data (CSV)`;
-      }
-    };
-    reader.readAsText(file, 'UTF-8');
+      } catch (err) { showModal({ icon: '❌', title: 'Gagal Impor', body: err.message, btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' }); } 
+      finally { document.getElementById('btnImport').disabled = false; document.getElementById('btnImport').innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Impor Data (CSV)`; }
+    }; reader.readAsText(file, 'UTF-8');
   };
 
   function showModal({ icon, title, body, btnCancelText, btnConfirmText, btnConfirmClass, onConfirm }) {
-    const modalOverlay = document.getElementById('appModal');
-    document.getElementById('modalIcon').textContent = icon;
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalBody').innerHTML = body;
+    const modalOverlay = document.getElementById('appModal'); document.getElementById('modalIcon').textContent = icon; document.getElementById('modalTitle').textContent = title; document.getElementById('modalBody').innerHTML = body;
     const actions = document.getElementById('modalActions'); actions.innerHTML = '';
-    
-    if (btnCancelText) {
-      const btnC = document.createElement('button'); btnC.className = 'modal-btn btn-cancel'; btnC.textContent = btnCancelText;
-      btnC.onclick = () => modalOverlay.classList.remove('show'); actions.appendChild(btnC);
-    }
-    if (btnConfirmText) {
-      const btnY = document.createElement('button'); btnY.className = `modal-btn ${btnConfirmClass}`; btnY.textContent = btnConfirmText;
-      btnY.onclick = () => { modalOverlay.classList.remove('show'); if(onConfirm) onConfirm(); }; actions.appendChild(btnY);
-    }
+    if (btnCancelText) { const btnC = document.createElement('button'); btnC.className = 'modal-btn btn-cancel'; btnC.textContent = btnCancelText; btnC.onclick = () => modalOverlay.classList.remove('show'); actions.appendChild(btnC); }
+    if (btnConfirmText) { const btnY = document.createElement('button'); btnY.className = `modal-btn ${btnConfirmClass}`; btnY.textContent = btnConfirmText; btnY.onclick = () => { modalOverlay.classList.remove('show'); if(onConfirm) onConfirm(); }; actions.appendChild(btnY); }
     modalOverlay.classList.add('show');
   }
 
-  function showToast(id) {
-    const t = document.getElementById(id);
-    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-  }
-
+  function showToast(id) { const t = document.getElementById(id); t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
   document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') window.tambahTransaksi(); });
 </script>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
-  }
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {}); }
 </script>
 </body>
 </html>
