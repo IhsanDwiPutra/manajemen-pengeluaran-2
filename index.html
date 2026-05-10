@@ -73,7 +73,25 @@
       color: var(--muted);
       letter-spacing: .1em;
       text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
+    
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.15rem 0.5rem;
+      background: rgba(52,211,153,.15);
+      border-radius: 99px;
+      color: var(--success);
+      font-size: 0.6rem;
+      letter-spacing: 0.05em;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+    .sync-badge.show { opacity: 1; }
 
     /* ── LAYOUT ── */
     .wrapper { max-width: 860px; margin: 0 auto; display: grid; gap: 1.5rem; }
@@ -219,7 +237,6 @@
     }
     input::placeholder { color: var(--muted); }
     
-    /* Input Group for Currency */
     .input-group { position: relative; display: flex; align-items: center; }
     .input-prefix {
       position: absolute;
@@ -352,6 +369,13 @@
     .empty { text-align: center; padding: 3.5rem 1rem; color: var(--muted); }
     .empty .icon { font-size: 2.5rem; margin-bottom: .8rem; opacity: .4; }
     .empty p { font-size: .82rem; letter-spacing: .06em; }
+    .loader {
+      display: inline-block; width: 30px; height: 30px;
+      border: 3px solid rgba(127,106,248,.2); border-radius: 50%;
+      border-top-color: var(--accent); animation: spin 1s ease-in-out infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── CHART ── */
     .chart-card {
@@ -471,13 +495,14 @@
       transition: transform .15s, box-shadow .2s, background .2s, border-color .2s;
       border: 1.5px solid;
     }
-    .tool-btn:hover  { transform: translateY(-2px); }
-    .tool-btn:active { transform: translateY(0); }
+    .tool-btn:hover:not(:disabled)  { transform: translateY(-2px); }
+    .tool-btn:active:not(:disabled) { transform: translateY(0); }
+    .tool-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-export { background: rgba(52,211,153,.08); border-color: rgba(52,211,153,.35); color: var(--success); }
-    .btn-export:hover { background: rgba(52,211,153,.16); border-color: var(--success); box-shadow: 0 4px 18px rgba(52,211,153,.2); }
+    .btn-export:hover:not(:disabled) { background: rgba(52,211,153,.16); border-color: var(--success); box-shadow: 0 4px 18px rgba(52,211,153,.2); }
     .btn-import { background: rgba(96,165,250,.08); border-color: rgba(96,165,250,.35); color: #60a5fa; }
-    .btn-import:hover { background: rgba(96,165,250,.16); border-color: #60a5fa; box-shadow: 0 4px 18px rgba(96,165,250,.2); }
+    .btn-import:hover:not(:disabled) { background: rgba(96,165,250,.16); border-color: #60a5fa; box-shadow: 0 4px 18px rgba(96,165,250,.2); }
 
     .tools-hint {
       margin-top: 1rem;
@@ -492,7 +517,7 @@
     }
     .tools-hint strong { color: #9ca3af; }
 
-    /* ── CUSTOM MODALS (Replaces alert & confirm) ── */
+    /* ── CUSTOM MODALS ── */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -584,7 +609,10 @@
 <header>
   <div>
     <div class="logo">SPENT<span>.</span></div>
-    <div class="tagline">Pencatat pengeluaran pribadi</div>
+    <div class="tagline">
+      Pencatat pengeluaran pribadi
+      <span class="sync-badge" id="syncBadge">☁️ Cloud</span>
+    </div>
   </div>
 </header>
 
@@ -601,7 +629,6 @@
       <label for="monthFilter" class="filter-label">Filter Bulan</label>
       <select id="monthFilter" class="month-filter" onchange="applyMonthFilter()">
         <option value="all">Semua Waktu</option>
-        <!-- Options dinamis dibuat via JS -->
       </select>
     </div>
   </div>
@@ -654,7 +681,7 @@
         <label for="tanggalInput">Tanggal</label>
         <input type="date" id="tanggalInput"/>
       </div>
-      <button class="btn-add" onclick="tambahPengeluaran()">Tambah Pengeluaran</button>
+      <button class="btn-add" id="btnAdd" onclick="tambahPengeluaran()">Tambah Pengeluaran</button>
     </div>
   </div>
 
@@ -664,7 +691,10 @@
       <div class="chart-title">Distribusi per Kategori</div>
     </div>
     <div class="chart-body" id="chartBody">
-      <!-- Diisi via JS -->
+      <div class="chart-empty" id="chartEmpty">
+        <div class="icon">📊</div>
+        <p>Memuat grafik...</p>
+      </div>
     </div>
   </div>
 
@@ -686,7 +716,12 @@
           </tr>
         </thead>
         <tbody id="tableBody">
-          <!-- Diisi via JS -->
+          <tr><td colspan="5">
+            <div class="empty">
+              <div class="loader"></div>
+              <p>Menyinkronkan data dari Cloud...</p>
+            </div>
+          </td></tr>
         </tbody>
       </table>
     </div>
@@ -699,18 +734,18 @@
       <div class="tools-title">Manajemen Data</div>
     </div>
     <div class="tools-grid">
-      <button class="tool-btn btn-export" onclick="eksporCSV()">
+      <button class="tool-btn btn-export" id="btnExport" onclick="eksporCSV()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Ekspor Data (CSV)
       </button>
-      <button class="tool-btn btn-import" onclick="triggerImport()">
+      <button class="tool-btn btn-import" id="btnImport" onclick="triggerImport()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         Impor Data (CSV)
       </button>
     </div>
     <div class="tools-hint">
       <strong>Ekspor</strong> — mengunduh semua data sebagai file <code>.csv</code> yang bisa dibuka di Excel / Sheets.<br>
-      <strong>Impor</strong> — unggah file CSV hasil ekspor untuk memulihkan atau memindahkan data. <strong>Data lama akan diganti.</strong>
+      <strong>Impor</strong> — unggah file CSV hasil ekspor untuk memulihkan atau memindahkan data. <strong>Data yang ada di Cloud akan terganti secara otomatis.</strong>
     </div>
   </div>
 
@@ -721,10 +756,11 @@
 
 <!-- TOASTS -->
 <div class="toast-container">
-  <div class="toast" id="toastAdd">✓ Pengeluaran ditambahkan</div>
-  <div class="toast" id="toastDel"    style="border-color:var(--danger);color:var(--danger);">🗑 Pengeluaran dihapus</div>
+  <div class="toast" id="toastAdd">✓ Data tersimpan di Cloud</div>
+  <div class="toast" id="toastDel"    style="border-color:var(--danger);color:var(--danger);">🗑 Data dihapus dari Cloud</div>
   <div class="toast" id="toastExport" style="border-color:var(--success);color:var(--success);">📥 Data diekspor</div>
-  <div class="toast" id="toastImport" style="border-color:#60a5fa;color:#60a5fa;">📤 Data diimpor</div>
+  <div class="toast" id="toastImport" style="border-color:#60a5fa;color:#60a5fa;">📤 Sinkronisasi Impor selesai</div>
+  <div class="toast" id="toastErr"    style="border-color:var(--warning);color:var(--warning);">❌ Terjadi kesalahan jaringan</div>
 </div>
 
 <!-- UNIVERSAL MODAL -->
@@ -733,26 +769,44 @@
     <div class="modal-icon" id="modalIcon">ℹ️</div>
     <h3 class="modal-title" id="modalTitle">Judul</h3>
     <p class="modal-body" id="modalBody">Pesan di sini</p>
-    <div class="modal-actions" id="modalActions">
-      <!-- Buttons injected via JS -->
-    </div>
+    <div class="modal-actions" id="modalActions"></div>
   </div>
 </div>
 
-<script>
-  // ── Constants & State ──
-  const LS_KEY     = 'spent_data';
-  const LS_COUNTER = 'spent_counter';
+<!-- FIREBASE CLOUD SAVE MODULE -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  let allData   = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  let idCounter = parseInt(localStorage.getItem(LS_COUNTER) || '0', 10);
-  let pieChart  = null;
+  // ── Konfigurasi Cloud ──
+  // ── Konfigurasi Cloud ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyAXjaGDcqGOS0zxHObEc4kJN120p62lm4U",
+    authDomain: "spent-app-e1141.firebaseapp.com",
+    projectId: "spent-app-e1141",
+    storageBucket: "spent-app-e1141.firebasestorage.app",
+    messagingSenderId: "113195094216",
+    appId: "1:113195094216:web:c735f7eae578efa6b395fd"
+  };
+  
+  const appId = 'spent-pwa-local'; // <--- TAMBAHKAN BARIS INI
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // ── State Aplikasi ──
+  let allData = [];
+  let pieChart = null;
   let currentMonthFilter = 'all';
+  let currentUser = null;
+  let isDataLoaded = false;
 
   // ── Init Date ──
   document.getElementById('tanggalInput').valueAsDate = new Date();
 
-  // ── Category Config ──
+  // ── Kategori Config ──
   const katConfig = {
     makanan:       { label: 'Makanan',      cls: 'badge-makanan',      icon: '🍜', color: '#fbbf24' },
     transportasi:  { label: 'Transportasi', cls: 'badge-transportasi', icon: '🚌', color: '#60a5fa' },
@@ -764,56 +818,91 @@
 
   // ── Helpers ──
   const fmtCurrency = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
-  function save() {
-    localStorage.setItem(LS_KEY, JSON.stringify(allData));
-    localStorage.setItem(LS_COUNTER, idCounter);
-  }
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // ── Realtime Format Rupiah di Input ──
-  function formatRupiahInput(inputElement) {
-    // Hapus semua karakter non-digit
+  window.formatRupiahInput = function(inputElement) {
     let val = inputElement.value.replace(/\D/g, '');
-    
-    // Simpan nilai asli ke hidden input
     document.getElementById('nominalInputVal').value = val;
-    
-    // Format untuk tampilan
-    if (val !== '') {
-      inputElement.value = parseInt(val, 10).toLocaleString('id-ID');
-    } else {
-      inputElement.value = '';
+    inputElement.value = val !== '' ? parseInt(val, 10).toLocaleString('id-ID') : '';
+  };
+
+  // ── Autentikasi Anonymous (Dibalik layar) ──
+  const initAuth = async () => {
+    try {
+      if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    } catch (err) {
+      console.error("Gagal terhubung ke layanan sinkronisasi:", err);
+      showToast('toastErr');
     }
+  };
+
+  let unsubscribeSnapshot = null;
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    if (user) {
+      document.getElementById('syncBadge').classList.add('show');
+      setupRealtimeListener();
+    } else {
+      document.getElementById('syncBadge').classList.remove('show');
+      allData = [];
+      refreshUI();
+    }
+  });
+
+  // Mulai koneksi
+  initAuth();
+
+  // ── Pendengar Perubahan Data Realtime ──
+  function setupRealtimeListener() {
+    if (!currentUser) return;
+    const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
+
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+    // Firebase onSnapshot mendengarkan perubahan seketika (Tambah/Hapus dari perangkat manapun)
+    unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => {
+      isDataLoaded = true;
+      allData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      refreshUI();
+    }, (error) => {
+      console.error("Kesalahan sinkronisasi data:", error);
+      showToast('toastErr');
+    });
   }
 
-  // ── Filter Data Logic ──
+  // ── Update Logic ──
+  window.applyMonthFilter = function() {
+    currentMonthFilter = document.getElementById('monthFilter').value;
+    refreshUI();
+  }
+
+  function getFilteredData() {
+    if (currentMonthFilter === 'all') return allData;
+    return allData.filter(d => d.tgl.startsWith(currentMonthFilter));
+  }
+
   function updateMonthDropdown() {
     const select = document.getElementById('monthFilter');
     const months = new Set();
-    
-    allData.forEach(d => {
-      // Potong YYYY-MM dari YYYY-MM-DD
-      months.add(d.tgl.substring(0, 7)); 
-    });
-
+    allData.forEach(d => months.add(d.tgl.substring(0, 7))); 
     const sortedMonths = Array.from(months).sort().reverse();
-    
-    // Pertahankan pilihan saat ini jika memungkinkan
     const currentVal = select.value;
     
     let optionsHTML = `<option value="all">Semua Waktu</option>`;
     sortedMonths.forEach(m => {
       const [year, month] = m.split('-');
-      const dateObj = new Date(year, month - 1);
-      const label = dateObj.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+      const label = new Date(year, month - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
       optionsHTML += `<option value="${m}">${label}</option>`;
     });
 
     select.innerHTML = optionsHTML;
-    
-    // Coba set kembali ke pilihan sebelumnya, atau default ke bulan ini jika ada datanya
     const todayYYYYMM = new Date().toISOString().substring(0, 7);
     if (currentVal !== 'all' && sortedMonths.includes(currentVal)) {
         select.value = currentVal;
@@ -825,18 +914,8 @@
     }
   }
 
-  function applyMonthFilter() {
-    currentMonthFilter = document.getElementById('monthFilter').value;
-    refreshUI();
-  }
-
-  function getFilteredData() {
-    if (currentMonthFilter === 'all') return allData;
-    return allData.filter(d => d.tgl.startsWith(currentMonthFilter));
-  }
-
-  // ── Core UI Updates ──
   function refreshUI() {
+    if (!isDataLoaded) return; // Tunggu koneksi pertama selesai
     updateMonthDropdown();
     const dataToRender = getFilteredData();
     renderTable(dataToRender);
@@ -854,23 +933,21 @@
     document.getElementById('avgAmount').textContent   = fmtCurrency(avg);
     document.getElementById('maxAmount').textContent   = fmtCurrency(max);
     document.getElementById('countBadge').textContent  = data.length + ' entri';
-
-    const labelText = currentMonthFilter === 'all' ? 'Total Pengeluaran (Semua)' : 'Total Pengeluaran Bulan Ini';
-    document.getElementById('totalLabel').textContent = labelText;
+    document.getElementById('totalLabel').textContent  = currentMonthFilter === 'all' ? 'Total Pengeluaran (Semua)' : 'Total Pengeluaran Bulan Ini';
   }
 
   function renderTable(data) {
     const tbody = document.getElementById('tableBody');
     if (data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="icon">🧾</div><p>Tidak ada pengeluaran di periode ini.</p></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><div class="icon">🧾</div><p>Belum ada pengeluaran tersimpan.</p></div></td></tr>`;
       return;
     }
     
-    // Sort dari yang terbaru
-    const sortedData = [...data].sort((a,b) => new Date(b.tgl) - new Date(a.tgl));
+    // Urutkan dari data terlama ke terbaru (fallback createdAt)
+    const sortedData = [...data].sort((a,b) => new Date(b.tgl) - new Date(a.tgl) || (b.createdAt || 0) - (a.createdAt || 0));
 
-    tbody.innerHTML = sortedData.map((d, i) => {
-      const k      = katConfig[d.kat] || katConfig.lainnya;
+    tbody.innerHTML = sortedData.map((d) => {
+      const k = katConfig[d.kat] || katConfig.lainnya;
       const tglFmt = new Date(d.tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
       return `
         <tr>
@@ -879,9 +956,7 @@
           <td class="td-date">${tglFmt}</td>
           <td class="td-amount" style="text-align:right">${fmtCurrency(d.nominal)}</td>
           <td style="text-align:center">
-            <button class="btn-del-red" data-id="${d.id}" onclick="konfirmasiHapus(${d.id}, '${escHtml(d.nama).replace(/'/g,"\\'")}')">
-              🗑
-            </button>
+            <button class="btn-del-red" onclick="konfirmasiHapus('${d.id}', '${escHtml(d.nama).replace(/'/g,"\\'")}')">🗑</button>
           </td>
         </tr>`;
     }).join('');
@@ -896,17 +971,13 @@
 
     if (keys.length === 0) {
       if (pieChart) { pieChart.destroy(); pieChart = null; }
-      chartBody.innerHTML = `
-        <div class="chart-empty" id="chartEmpty">
-          <div class="icon">📊</div>
-          <p>Belum ada data untuk grafik.</p>
-        </div>`;
+      chartBody.innerHTML = `<div class="chart-empty"><div class="icon">📊</div><p>Belum ada data untuk grafik.</p></div>`;
       return;
     }
 
-    const labels  = keys.map(k => (katConfig[k] || katConfig.lainnya).icon + ' ' + (katConfig[k] || katConfig.lainnya).label);
-    const values  = keys.map(k => grouped[k]);
-    const colors  = keys.map(k => (katConfig[k] || katConfig.lainnya).color);
+    const labels = keys.map(k => (katConfig[k] || katConfig.lainnya).icon + ' ' + (katConfig[k] || katConfig.lainnya).label);
+    const values = keys.map(k => grouped[k]);
+    const colors = keys.map(k => (katConfig[k] || katConfig.lainnya).color);
 
     const legendHTML = keys.map(k => {
       const cfg = katConfig[k] || katConfig.lainnya;
@@ -934,160 +1005,115 @@
       const ctx = document.getElementById('pieCanvas').getContext('2d');
       pieChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: colors.map(c => c + 'cc'),
-            borderColor: colors.map(c => c + 'bb'),
-            borderWidth: 2,
-            hoverOffset: 8,
-          }]
-        },
-        options: {
-          responsive: true, cutout: '68%',
-          animation: { animateRotate: true, duration: 600 },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: '#1c1c26', borderColor: '#2a2a38', borderWidth: 1,
-              titleColor: '#e8e8f0', bodyColor: '#9ca3af', padding: 12,
-              callbacks: {
-                label: ctx => {
-                  const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0';
-                  return `  ${fmtCurrency(ctx.parsed)}  (${pct}%)`;
-                }
-              }
-            }
-          }
-        }
+        data: { labels, datasets: [{ data: values, backgroundColor: colors.map(c => c + 'cc'), borderColor: colors.map(c => c + 'bb'), borderWidth: 2, hoverOffset: 8 }] },
+        options: { responsive: true, cutout: '68%', animation: { animateRotate: true, duration: 600 }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c1c26', borderColor: '#2a2a38', borderWidth: 1, titleColor: '#e8e8f0', bodyColor: '#9ca3af', padding: 12, callbacks: { label: ctx => `  ${fmtCurrency(ctx.parsed)}  (${total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0'}%)` } } } }
       });
     } else {
-      pieChart.data.labels = labels;
-      pieChart.data.datasets[0].data = values;
-      pieChart.data.datasets[0].backgroundColor = colors.map(c => c + 'cc');
-      pieChart.data.datasets[0].borderColor = colors.map(c => c + 'bb');
+      pieChart.data.labels = labels; pieChart.data.datasets[0].data = values;
+      pieChart.data.datasets[0].backgroundColor = colors.map(c => c + 'cc'); pieChart.data.datasets[0].borderColor = colors.map(c => c + 'bb');
       pieChart.update();
       document.getElementById('chartLegend').innerHTML = legendHTML;
-      document.getElementById('clCount').textContent   = data.length;
+      document.getElementById('clCount').textContent = data.length;
     }
   }
 
-  // ── Actions ──
-  function tambahPengeluaran() {
-    const nama    = document.getElementById('namaInput').value.trim();
-    const rawNominal = document.getElementById('nominalInputVal').value;
-    const nominal = parseFloat(rawNominal);
-    const kat     = document.getElementById('kategoriInput').value;
-    const tgl     = document.getElementById('tanggalInput').value;
+  // ── Aksi Cloud: Tambah / Hapus ──
+  window.tambahPengeluaran = async function() {
+    const nama = document.getElementById('namaInput').value.trim();
+    const nominal = parseFloat(document.getElementById('nominalInputVal').value);
+    const kat = document.getElementById('kategoriInput').value;
+    const tgl = document.getElementById('tanggalInput').value;
 
-    if (!nama)                    return shake('namaInput');
+    const shake = id => {
+      const el = document.getElementById(id); el.style.borderColor = 'var(--danger)'; el.style.boxShadow = '0 0 0 3px rgba(248,113,113,.25)'; el.focus();
+      setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800);
+    };
+
+    if (!nama) return shake('namaInput');
     if (!nominal || nominal <= 0) return shake('nominalInputDisplay');
-    if (!kat)                     return shake('kategoriInput');
-    if (!tgl)                     return shake('tanggalInput');
+    if (!kat) return shake('kategoriInput');
+    if (!tgl) return shake('tanggalInput');
+    if (!currentUser) { showToast('toastErr'); return; }
 
-    allData.push({ id: ++idCounter, nama, nominal, kat, tgl });
-    save();
-    
-    // Otomatis ubah filter ke bulan transaksi yang baru ditambahkan
-    const newMonth = tgl.substring(0,7);
-    currentMonthFilter = newMonth;
-    document.getElementById('monthFilter').value = newMonth;
+    const btn = document.getElementById('btnAdd');
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
 
-    refreshUI();
-    showToast('toastAdd');
+    try {
+      const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
+      await addDoc(colRef, { nama, nominal, kat, tgl, createdAt: Date.now() });
+      
+      const newMonth = tgl.substring(0,7);
+      currentMonthFilter = newMonth;
+      
+      showToast('toastAdd');
+      document.getElementById('namaInput').value = '';
+      document.getElementById('nominalInputDisplay').value = '';
+      document.getElementById('nominalInputVal').value = '';
+      document.getElementById('kategoriInput').value = '';
+    } catch (err) {
+      console.error(err);
+      showToast('toastErr');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Tambah Pengeluaran';
+    }
+  };
 
-    document.getElementById('namaInput').value = '';
-    document.getElementById('nominalInputDisplay').value = '';
-    document.getElementById('nominalInputVal').value = '';
-    document.getElementById('kategoriInput').value = '';
-    // Tetap biarkan tanggal hari ini
-  }
-
-  function shake(id) {
-    const el = document.getElementById(id);
-    el.style.borderColor = 'var(--danger)';
-    el.style.boxShadow   = '0 0 0 3px rgba(248,113,113,.25)';
-    el.focus();
-    setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800);
-  }
-
-  function konfirmasiHapus(id, nama) {
+  window.konfirmasiHapus = function(id, nama) {
     showModal({
-      icon: '⚠️',
-      title: 'Hapus Pengeluaran?',
-      body: `Apakah Anda yakin ingin menghapus <strong>"${nama}"</strong>?\n\nTotal akan otomatis disesuaikan.`,
-      btnConfirmText: 'Hapus Data',
-      btnConfirmClass: 'btn-confirm-danger',
-      onConfirm: () => {
-        allData = allData.filter(d => d.id !== id);
-        save();
-        refreshUI();
-        showToast('toastDel');
+      icon: '⚠️', title: 'Hapus Pengeluaran?',
+      body: `Apakah Anda yakin ingin menghapus <strong>"${nama}"</strong> dari Cloud?`,
+      btnConfirmText: 'Hapus Data', btnConfirmClass: 'btn-confirm-danger',
+      onConfirm: async () => {
+        if (!currentUser) return;
+        try {
+          await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', id));
+          showToast('toastDel');
+        } catch(e) { console.error(e); showToast('toastErr'); }
       }
     });
-  }
+  };
 
-  // ── Data Tools (Export / Import) ──
-  function eksporCSV() {
+  // ── Ekspor & Impor (Tersinkronisasi Cloud) ──
+  window.eksporCSV = function() {
     if (allData.length === 0) {
-      showModal({
-        icon: 'ℹ️', title: 'Data Kosong',
-        body: 'Tidak ada data untuk diekspor. Tambahkan pengeluaran terlebih dahulu.',
-        btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok'
-      });
-      return;
+      return showModal({ icon: 'ℹ️', title: 'Data Kosong', body: 'Tidak ada data di Cloud untuk diekspor.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok' });
     }
-
-    const BOM  = '\uFEFF';
-    const COLS = ['Nama', 'Kategori', 'Tanggal', 'Nominal'];
+    const BOM = '\uFEFF', COLS = ['Nama', 'Kategori', 'Tanggal', 'Nominal'];
     const esc = v => { const s = String(v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-
-    const rows = allData.map(d => [
-      esc(d.nama), esc((katConfig[d.kat] || katConfig.lainnya).label), esc(d.tgl), esc(d.nominal)
-    ].join(','));
-
-    const csv  = BOM + [COLS.join(','), ...rows].join('\r\n');
+    const rows = allData.map(d => [ esc(d.nama), esc((katConfig[d.kat] || katConfig.lainnya).label), esc(d.tgl), esc(d.nominal) ].join(','));
+    const csv = BOM + [COLS.join(','), ...rows].join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = `pengeluaran_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = `pengeluaran_cloud_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     showToast('toastExport');
-  }
+  };
 
-  function triggerImport() {
+  window.triggerImport = function() {
     if (allData.length > 0) {
       showModal({
-        icon: '⚠️', title: 'Timpa Data?',
-        body: `Anda memiliki <strong>${allData.length} entri</strong>. Mengimpor file baru akan <strong>MENGHAPUS</strong> semua data saat ini.\n\nPastikan Anda sudah mengekspor cadangan.`,
-        btnCancelText: 'Batal',
-        btnConfirmText: 'Ya, Timpa Data',
-        btnConfirmClass: 'btn-confirm-warn',
+        icon: '⚠️', title: 'Timpa Data Cloud?',
+        body: `Anda memiliki <strong>${allData.length} entri</strong>. Mengimpor file baru akan <strong>MENGHAPUS</strong> semua data Anda di Cloud secara permanen dan menggantinya dengan data baru.\n\nPastikan Anda sudah mengekspor cadangan.`,
+        btnCancelText: 'Batal', btnConfirmText: 'Ya, Timpa Data', btnConfirmClass: 'btn-confirm-warn',
         onConfirm: () => document.getElementById('csvFileInput').click()
       });
     } else {
       document.getElementById('csvFileInput').click();
     }
-  }
+  };
 
-  function prosesImportCSV(event) {
+  window.prosesImportCSV = function(event) {
     const file = event.target.files[0];
     if (!file) return;
     event.target.value = '';
 
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async (e) => {
       try {
-        const text  = e.target.result.replace(/^\uFEFF/, '');
-        const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+        const text = e.target.result.replace(/^\uFEFF/, ''), lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
         if (lines.length < 2) throw new Error('File kosong atau hanya header.');
-
         const header = lines[0].split(',').map(h => h.trim().toLowerCase());
-        const REQUIRED = ['nama', 'kategori', 'tanggal', 'nominal'];
-        const missing  = REQUIRED.filter(col => !header.includes(col));
+        const missing = ['nama', 'kategori', 'tanggal', 'nominal'].filter(col => !header.includes(col));
         if (missing.length > 0) throw new Error(`Kolom hilang: ${missing.join(', ')}`);
 
         const iNama = header.indexOf('nama'), iKat = header.indexOf('kategori'), iTgl = header.indexOf('tanggal'), iNom = header.indexOf('nominal');
@@ -1106,77 +1132,77 @@
 
         const imported = [], errors = [];
         lines.slice(1).forEach((line, idx) => {
-          const cols = parseCSVLine(line);
-          const nom = parseFloat(cols[iNom]);
+          const cols = parseCSVLine(line), nom = parseFloat(cols[iNom]);
           if (!cols[iNama]) return errors.push(`Baris ${idx+2}: Nama kosong`);
           if (isNaN(nom)||nom<=0) return errors.push(`Baris ${idx+2}: Nominal salah`);
           if (!/^\d{4}-\d{2}-\d{2}$/.test(cols[iTgl])) return errors.push(`Baris ${idx+2}: Format tgl salah`);
-          imported.push({ nama: cols[iNama], kat: labelToKey[(cols[iKat]||'').toLowerCase()]||'lainnya', tgl: cols[iTgl], nominal: nom });
+          imported.push({ nama: cols[iNama], kat: labelToKey[(cols[iKat]||'').toLowerCase()]||'lainnya', tgl: cols[iTgl], nominal: nom, createdAt: Date.now() + idx });
         });
 
-        if (imported.length === 0) throw new Error('Tidak ada baris valid.\n' + errors.slice(0,2).join('\n'));
+        if (imported.length === 0) throw new Error('Tidak ada baris valid.');
 
-        allData = imported.map(d => ({ id: ++idCounter, ...d }));
-        save(); currentMonthFilter = 'all'; refreshUI(); showToast('toastImport');
+        if (!currentUser) throw new Error('Anda belum terkoneksi ke layanan Cloud.');
+        
+        document.getElementById('btnImport').disabled = true;
+        document.getElementById('btnImport').textContent = 'Mengunggah...';
+
+        // 1. Hapus semua data lama
+        const deletePromises = allData.map(d => deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', d.id)));
+        await Promise.all(deletePromises);
+
+        // 2. Unggah data baru
+        const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
+        const addPromises = imported.map(d => addDoc(colRef, d));
+        await Promise.all(addPromises);
+
+        currentMonthFilter = 'all';
+        showToast('toastImport');
 
         if (errors.length > 0) {
-          showModal({ icon: '⚠️', title: 'Impor dengan Peringatan', body: `Beberapa baris dilewati:\n${errors.slice(0,3).join('\n')}`, btnConfirmText: 'Mengerti', btnConfirmClass: 'btn-confirm-warn' });
+          showModal({ icon: '⚠️', title: 'Impor Selesai dengan Peringatan', body: `Beberapa baris dilewati:\n${errors.slice(0,3).join('\n')}`, btnConfirmText: 'Mengerti', btnConfirmClass: 'btn-confirm-warn' });
         }
       } catch (err) {
-        showModal({ icon: '❌', title: 'Gagal Impor', body: err.message, btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' });
+        showModal({ icon: '❌', title: 'Gagal Impor ke Cloud', body: err.message, btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' });
+      } finally {
+        document.getElementById('btnImport').disabled = false;
+        document.getElementById('btnImport').innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Impor Data (CSV)`;
       }
     };
     reader.readAsText(file, 'UTF-8');
-  }
+  };
 
-  // ── Custom Modal Builder ──
+  // ── Custom Modal & Toast ──
   const modalOverlay = document.getElementById('appModal');
   function showModal({ icon, title, body, btnCancelText, btnConfirmText, btnConfirmClass, onConfirm }) {
     document.getElementById('modalIcon').textContent = icon;
     document.getElementById('modalTitle').textContent = title;
     document.getElementById('modalBody').innerHTML = body;
-    
-    const actions = document.getElementById('modalActions');
-    actions.innerHTML = '';
+    const actions = document.getElementById('modalActions'); actions.innerHTML = '';
     
     if (btnCancelText) {
-      const btnC = document.createElement('button');
-      btnC.className = 'modal-btn btn-cancel';
-      btnC.textContent = btnCancelText;
-      btnC.onclick = closeModal;
-      actions.appendChild(btnC);
+      const btnC = document.createElement('button'); btnC.className = 'modal-btn btn-cancel'; btnC.textContent = btnCancelText;
+      btnC.onclick = () => modalOverlay.classList.remove('show'); actions.appendChild(btnC);
     }
-    
     if (btnConfirmText) {
-      const btnY = document.createElement('button');
-      btnY.className = `modal-btn ${btnConfirmClass}`;
-      btnY.textContent = btnConfirmText;
-      btnY.onclick = () => { closeModal(); if(onConfirm) onConfirm(); };
-      actions.appendChild(btnY);
+      const btnY = document.createElement('button'); btnY.className = `modal-btn ${btnConfirmClass}`; btnY.textContent = btnConfirmText;
+      btnY.onclick = () => { modalOverlay.classList.remove('show'); if(onConfirm) onConfirm(); }; actions.appendChild(btnY);
     }
-    
     modalOverlay.classList.add('show');
   }
-  function closeModal() { modalOverlay.classList.remove('show'); }
 
-  // ── Toasts ──
   function showToast(id) {
     const t = document.getElementById(id);
-    
-    // Reset animation if already showing
-    t.classList.remove('show');
-    void t.offsetWidth; // trigger reflow
-    
-    t.classList.add('show');
+    t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
   }
 
-  // ── Init Run ──
-  refreshUI();
-  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') tambahPengeluaran(); });
+  // ── Dukungan Tombol Enter ──
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') window.tambahPengeluaran(); });
 
-  // ── PWA Registration Placeholder ──
-  // Tetap mereferensikan file PWA milik Anda (service-worker.js & manifest.json)
+</script>
+
+<script>
+  // PWA Service Worker (Terpisah dari Firebase Module)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
   }
