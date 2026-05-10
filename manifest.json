@@ -1,0 +1,44 @@
+{
+  "name": "Spent — Pencatat Pengeluaran",
+  "short_name": "Spent",
+  "description": "Aplikasi pencatat pengeluaran pribadi. Lacak, analisis, dan ekspor data keuangan Anda.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#7f6af8",
+  "background_color": "#0c0c0f",
+  "lang": "id",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tambah Pengeluaran",
+      "short_name": "Tambah",
+      "description": "Langsung buka form input pengeluaran",
+      "url": "./index.html#tambah",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
