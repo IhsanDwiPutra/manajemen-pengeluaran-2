@@ -97,7 +97,7 @@
     .stat-card .s-val { font-family: var(--font-head); font-size: 1.3rem; font-weight: 600; word-break: break-all;}
     .stat-card .s-val.green { color: var(--success); } .stat-card .s-val.yellow { color: var(--warning); } .stat-card .s-val.red { color: var(--danger); }
 
-    /* ── FORM & AI BUTTON ── */
+    /* ── FORM & AI BUTTON & SPLIT BILL ── */
     .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.8rem 2rem; animation: slideUp .5s .15s ease both; }
     .form-header-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.4rem; flex-wrap: wrap; gap: 1rem; }
     .form-title { font-family: var(--font-head); font-size: 1rem; font-weight: 600; letter-spacing: .04em; color: var(--muted); text-transform: uppercase; margin: 0; }
@@ -124,6 +124,14 @@
     select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b80' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
     select option { background: var(--surface2); }
 
+    /* SPLIT BILL CSS */
+    .split-toggle { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; color: var(--text); font-weight: 600; font-size: 0.8rem; text-transform: none; letter-spacing: normal;}
+    .split-toggle input { width: 1.2rem; height: 1.2rem; cursor: pointer; accent-color: var(--accent); margin: 0; padding: 0; appearance: auto; -webkit-appearance: auto;}
+    .split-details { display: none; margin-top: 0.5rem; background: rgba(127,106,248,.08); border: 1px dashed rgba(127,106,248,.3); border-radius: 8px; padding: 1rem; animation: slideUp 0.3s ease; }
+    .split-details.show { display: block; }
+    .split-result { margin-top: 0.8rem; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    .split-result strong { color: var(--danger); font-size: 0.95rem; }
+
     .btn-add { grid-column: 1 / -1; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 8px; color: #fff; cursor: pointer; font-family: var(--font-head); font-size: .9rem; font-weight: 700; letter-spacing: .06em; padding: .85rem 1.5rem; text-transform: uppercase; transition: opacity .2s, transform .15s, box-shadow .2s; box-shadow: 0 4px 20px rgba(127,106,248,.35); margin-top: 0.5rem;}
     .btn-add:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(127,106,248,.45); }
     .btn-add:active { transform: translateY(0); }
@@ -143,6 +151,7 @@
     tbody tr:hover { background: rgba(127,106,248,.05); }
     td { padding: .95rem 1.8rem; font-size: .85rem; vertical-align: middle; }
     .td-name { font-weight: 500; color: var(--text); }
+    .td-name small { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 0.2rem; }
     .td-amount { font-family: var(--font-head); font-weight: 600; font-size: .95rem; white-space: nowrap;}
     .td-amount.masuk { color: var(--success); }
     .td-amount.keluar { color: var(--danger); }
@@ -304,7 +313,7 @@
     </div>
   </div>
 
-  <!-- FORM WITH AI SCANNER -->
+  <!-- FORM WITH AI SCANNER & SPLIT BILL -->
   <div class="form-card">
     <div class="form-header-wrap">
       <h2 class="form-title">+ Tambah Transaksi</h2>
@@ -333,7 +342,7 @@
       </div>
       
       <div class="form-group">
-        <label for="nominalInputDisplay">Nominal (Rp)</label>
+        <label for="nominalInputDisplay">Nominal / Total Tagihan (Rp)</label>
         <div class="input-group">
           <span class="input-prefix">Rp</span>
           <input type="text" inputmode="numeric" id="nominalInputDisplay" class="input-with-prefix" placeholder="0" oninput="formatRupiahInput(this)"/>
@@ -344,6 +353,23 @@
       <div class="form-group">
         <label for="kategoriInput">Kategori</label>
         <select id="kategoriInput"></select>
+      </div>
+
+      <!-- SPLIT BILL SECTION -->
+      <div class="form-group full" id="splitBillContainer">
+        <label class="split-toggle">
+          <input type="checkbox" id="isSplitBill" onchange="toggleSplitBill()">
+          <span>Bagi Rata (Split Bill) / Patungan?</span>
+        </label>
+        
+        <div class="split-details" id="splitDetails">
+          <label for="splitCount">Dibagi berapa orang? (Termasuk Anda)</label>
+          <input type="number" id="splitCount" value="2" min="2" max="100" oninput="calculateSplit()"/>
+          <div class="split-result">
+            Total Tagihan: <span id="splitTotalDisplay">Rp 0</span><br>
+            <strong>Nominal Porsi Anda: <span id="splitPortionDisplay">Rp 0</span></strong>
+          </div>
+        </div>
       </div>
       
       <div class="form-group full">
@@ -378,7 +404,7 @@
       <table>
         <thead>
           <tr>
-            <th>Nama</th>
+            <th>Nama & Catatan</th>
             <th>Kategori</th>
             <th>Tanggal</th>
             <th style="text-align:right">Nominal</th>
@@ -466,7 +492,6 @@
   const db = getFirestore(app);
   const googleProvider = new GoogleAuthProvider();
 
-  // ── State Aplikasi ──
   let allData = [];
   let pieChart = null;
   let currentMonthFilter = 'all';
@@ -474,7 +499,6 @@
   let isDataLoaded = false;
   let unsubscribeSnapshot = null;
 
-  // ── Gemini API (AI Studio) ──
   const geminiApiKey = ""; // KOSONGKAN INI. API Key diambil dari localStorage user.
 
   document.getElementById('tanggalInput').valueAsDate = new Date();
@@ -503,6 +527,13 @@
     select.innerHTML = '<option value="">— Pilih kategori —</option>';
     const kats = katConfig[tipe];
     for (const key in kats) select.innerHTML += `<option value="${key}">${kats[key].icon} ${kats[key].label}</option>`;
+    
+    // Tampilkan/Sembunyikan Split Bill (Biasanya hanya untuk pengeluaran)
+    document.getElementById('splitBillContainer').style.display = (tipe === 'pengeluaran') ? 'flex' : 'none';
+    if(tipe === 'pemasukan') {
+        document.getElementById('isSplitBill').checked = false;
+        window.toggleSplitBill();
+    }
   };
   window.updateKategoriOptions();
 
@@ -513,95 +544,79 @@
     let val = inputElement.value.replace(/\D/g, '');
     document.getElementById('nominalInputVal').value = val;
     inputElement.value = val !== '' ? parseInt(val, 10).toLocaleString('id-ID') : '';
+    window.calculateSplit(); // Update nominal split secara realtime
+  };
+
+  // ── Split Bill Logic ──
+  window.toggleSplitBill = function() {
+    const isSplit = document.getElementById('isSplitBill').checked;
+    const details = document.getElementById('splitDetails');
+    if (isSplit) {
+      details.classList.add('show');
+      window.calculateSplit();
+    } else {
+      details.classList.remove('show');
+    }
+  };
+
+  window.calculateSplit = function() {
+    if (!document.getElementById('isSplitBill').checked) return;
+    const total = parseFloat(document.getElementById('nominalInputVal').value) || 0;
+    const count = parseInt(document.getElementById('splitCount').value) || 2;
+    const portion = total / count;
+    document.getElementById('splitTotalDisplay').textContent = fmtCurrency(total);
+    document.getElementById('splitPortionDisplay').textContent = fmtCurrency(portion);
   };
 
   // ── Integrasi AI (Gemini Vision) ──
   window.promptApiKey = function() {
     const currentKey = localStorage.getItem('gemini_api_key') || '';
     const key = prompt("PENGATURAN AI:\nMasukkan API Key dari Google AI Studio untuk mengaktifkan fitur Scan Struk otomatis.", currentKey);
-    if (key !== null) {
-      localStorage.setItem('gemini_api_key', key.trim());
-      if (key.trim()) alert("API Key berhasil disimpan! Fitur Scan Struk siap digunakan.");
-    }
+    if (key !== null) { localStorage.setItem('gemini_api_key', key.trim()); if (key.trim()) alert("API Key berhasil disimpan!"); }
   };
 
   window.handleReceiptScan = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    event.target.value = ''; // Reset input
-
+    const file = event.target.files[0]; if (!file) return; event.target.value = '';
     const savedKey = geminiApiKey || localStorage.getItem('gemini_api_key');
-    if (!savedKey) {
-      alert("API Key Google AI Studio belum diatur!\nSilakan klik ikon gembok 🔓 di sebelah tombol Scan Struk untuk memasukkan kunci Anda.");
-      return;
-    }
+    if (!savedKey) return alert("API Key belum diatur!\nKlik ikon gembok 🔓 di sebelah tombol Scan Struk.");
 
-    const aiModal = document.getElementById('aiModal');
-    aiModal.classList.add('show');
-
+    const aiModal = document.getElementById('aiModal'); aiModal.classList.add('show');
     try {
       const base64Data = await resizeAndConvertImage(file);
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${savedKey}`;
       
       const payload = {
-        contents: [{
-          role: "user",
-          parts: [
+        contents: [{ role: "user", parts: [
             { text: "Anda adalah asisten keuangan pintar. Analisis foto struk ini secara teliti. Cari dan ekstrak: 1. Nama toko/merchant. 2. Total harga akhir belanja (hanya angka bulat). 3. Tebak kategorinya (HANYA pilih salah satu dari: makanan, transportasi, hiburan, kesehatan, belanja, lainnya). Kembalikan HANYA format JSON valid seperti contoh ini: {\"nama\": \"Indomaret\", \"nominal\": 56000, \"kategori\": \"belanja\"} tanpa markdown." },
             { inlineData: { mimeType: "image/jpeg", data: base64Data } }
-          ]
-        }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: { type: "OBJECT", properties: { nama: { type: "STRING" }, nominal: { type: "NUMBER" }, kategori: { type: "STRING" } } }
-        }
+        ]}],
+        generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { nama: { type: "STRING" }, nominal: { type: "NUMBER" }, kategori: { type: "STRING" } } } }
       };
 
-      // Exponential backoff untuk panggilan API AI
-      let resultJSON = null;
-      let delays = [1000, 2000, 4000];
+      let resultJSON = null, delays = [1000, 2000, 4000];
       for (let i = 0; i <= delays.length; i++) {
         try {
           const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          if (!response.ok) {
-            if(response.status === 400) throw new Error("API Key tidak valid.");
-            throw new Error(`HTTP ${response.status}`);
-          }
-          const data = await response.json();
-          const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!response.ok) { if(response.status === 400) throw new Error("API Key tidak valid."); throw new Error(`HTTP ${response.status}`); }
+          const textResult = (await response.json()).candidates?.[0]?.content?.parts?.[0]?.text;
           if(!textResult) throw new Error("AI tidak mengenali struk.");
-          resultJSON = JSON.parse(textResult);
-          break; // Sukses, keluar dari loop
-        } catch (err) {
-          if (i === delays.length) throw err;
-          await new Promise(r => setTimeout(r, delays[i]));
-        }
+          resultJSON = JSON.parse(textResult); break; 
+        } catch (err) { if (i === delays.length) throw err; await new Promise(r => setTimeout(r, delays[i])); }
       }
 
       if (resultJSON) {
-        // Otomatis ubah tipe ke pengeluaran
-        document.getElementById('tipeInput').value = 'pengeluaran';
-        window.updateKategoriOptions();
-
-        // Isi form otomatis
+        document.getElementById('tipeInput').value = 'pengeluaran'; window.updateKategoriOptions();
         document.getElementById('namaInput').value = resultJSON.nama || 'Struk Terbaca';
         const nominal = parseInt(resultJSON.nominal) || 0;
         document.getElementById('nominalInputVal').value = nominal;
         document.getElementById('nominalInputDisplay').value = nominal > 0 ? nominal.toLocaleString('id-ID') : '';
-        
-        const katRaw = (resultJSON.kategori || '').toLowerCase();
-        const validKats = Object.keys(katConfig.pengeluaran);
+        const katRaw = (resultJSON.kategori || '').toLowerCase(), validKats = Object.keys(katConfig.pengeluaran);
         document.getElementById('kategoriInput').value = validKats.includes(katRaw) ? katRaw : 'lainnya';
-
+        
+        window.calculateSplit(); // Update split nominal jika AI mendeteksi harga besar
         showToast('toastAi');
       }
-
-    } catch (error) {
-      console.error(error);
-      alert("Gagal memproses struk: " + error.message + "\n\nPastikan foto jelas dan API Key Anda valid.");
-    } finally {
-      aiModal.classList.remove('show');
-    }
+    } catch (error) { alert("Gagal memproses struk: " + error.message); } finally { aiModal.classList.remove('show'); }
   };
 
   function resizeAndConvertImage(file) {
@@ -610,39 +625,26 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_SIZE = 1000;
-          let width = img.width, height = img.height;
-          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } 
-          else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-          canvas.width = width; canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); // Kembalikan hanya Base64 string
-        };
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+          const canvas = document.createElement('canvas'); const MAX_SIZE = 1000; let width = img.width, height = img.height;
+          if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+          canvas.width = width; canvas.height = height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
+        }; img.src = e.target.result;
+      }; reader.onerror = reject; reader.readAsDataURL(file);
     });
   }
 
   // ── Sistem Login / Logout Google ──
   window.loginGoogle = async function() {
-    const btnLogin = document.getElementById('btnLogin');
-    btnLogin.disabled = true; btnLogin.innerHTML = 'Memuat...';
+    const btnLogin = document.getElementById('btnLogin'); btnLogin.disabled = true; btnLogin.innerHTML = 'Memuat...';
     try { await signInWithPopup(auth, googleProvider); showToast('toastLogin'); } 
     catch (error) { showModal({ icon: '❌', title: 'Login Gagal', body: 'Terjadi kesalahan.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-danger' }); } 
     finally { btnLogin.disabled = false; btnLogin.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Masuk dengan Google'; }
   };
-
-  window.logoutGoogle = async function() {
-    showModal({ icon: '👋', title: 'Keluar Akun?', body: 'Anda akan keluar dari sesi ini. Data Anda aman tersimpan di Cloud.', btnCancelText: 'Batal', btnConfirmText: 'Ya, Keluar', btnConfirmClass: 'btn-confirm-danger', onConfirm: async () => { try { await signOut(auth); } catch(e) {} } });
-  };
+  window.logoutGoogle = async function() { showModal({ icon: '👋', title: 'Keluar Akun?', body: 'Anda akan keluar dari sesi ini. Data Anda aman tersimpan di Cloud.', btnCancelText: 'Batal', btnConfirmText: 'Ya, Keluar', btnConfirmClass: 'btn-confirm-danger', onConfirm: async () => { try { await signOut(auth); } catch(e) {} } }); };
 
   onAuthStateChanged(auth, (user) => {
-    currentUser = user;
-    const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp'), userProfile = document.getElementById('userProfile');
+    currentUser = user; const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp'), userProfile = document.getElementById('userProfile');
     if (user) {
       loginScreen.style.display = 'none'; mainApp.style.display = 'grid'; userProfile.style.display = 'flex';
       document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Pengguna';
@@ -660,16 +662,11 @@
     if (!currentUser) return;
     const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
     if (unsubscribeSnapshot) unsubscribeSnapshot();
-    unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => {
-      isDataLoaded = true;
-      allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      refreshUI();
-    }, (error) => { console.error(error); showToast('toastErr'); });
+    unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => { isDataLoaded = true; allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); }, (error) => { console.error(error); showToast('toastErr'); });
   }
 
   // ── Update Logic & Rendering ──
   window.applyMonthFilter = function() { currentMonthFilter = document.getElementById('monthFilter').value; refreshUI(); }
-
   function getFilteredData() { return currentMonthFilter === 'all' ? allData : allData.filter(d => d.tgl.startsWith(currentMonthFilter)); }
 
   function updateMonthDropdown() {
@@ -677,14 +674,9 @@
     allData.forEach(d => months.add(d.tgl.substring(0, 7))); 
     const sortedMonths = Array.from(months).sort().reverse();
     const currentVal = select.value;
-    
     let optionsHTML = `<option value="all">Semua Waktu</option>`;
-    sortedMonths.forEach(m => {
-      const [year, month] = m.split('-');
-      optionsHTML += `<option value="${m}">${new Date(year, month - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</option>`;
-    });
-    select.innerHTML = optionsHTML;
-    const todayYYYYMM = new Date().toISOString().substring(0, 7);
+    sortedMonths.forEach(m => { const [year, month] = m.split('-'); optionsHTML += `<option value="${m}">${new Date(year, month - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}</option>`; });
+    select.innerHTML = optionsHTML; const todayYYYYMM = new Date().toISOString().substring(0, 7);
     if (currentVal !== 'all' && sortedMonths.includes(currentVal)) select.value = currentVal;
     else if (sortedMonths.includes(todayYYYYMM)) { select.value = todayYYYYMM; currentMonthFilter = todayYYYYMM; }
     else select.value = 'all';
@@ -692,9 +684,7 @@
 
   function refreshUI() {
     if (!isDataLoaded) return; 
-    updateMonthDropdown();
-    const dataToRender = getFilteredData();
-    renderTable(dataToRender); updateStats(dataToRender); updateChart(dataToRender);
+    updateMonthDropdown(); const dataToRender = getFilteredData(); renderTable(dataToRender); updateStats(dataToRender); updateChart(dataToRender);
   }
 
   function updateStats(data) {
@@ -721,8 +711,10 @@
     tbody.innerHTML = sortedData.map((d) => {
       const t = d.tipe || 'pengeluaran', k = katConfig[t][d.kat] || katConfig[t].lainnya;
       const cls = t === 'pemasukan' ? 'masuk' : 'keluar', prefix = t === 'pemasukan' ? '+ ' : '- ';
+      // Handle split bill text in name if any
+      const splitNama = d.splitNotes ? ` <small>${d.splitNotes}</small>` : '';
       return `<tr>
-          <td class="td-name">${escHtml(d.nama)}</td>
+          <td class="td-name">${escHtml(d.nama)} ${splitNama}</td>
           <td><span class="badge ${k.cls}">${k.icon} ${k.label}</span></td>
           <td class="td-date">${new Date(d.tgl + 'T00:00:00').toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' })}</td>
           <td class="td-amount ${cls}" style="text-align:right">${prefix}${fmtCurrency(d.nominal)}</td>
@@ -760,15 +752,44 @@
 
   // ── Aksi Cloud ──
   window.tambahTransaksi = async function() {
-    const tipe = document.getElementById('tipeInput').value, nama = document.getElementById('namaInput').value.trim(), nominal = parseFloat(document.getElementById('nominalInputVal').value), kat = document.getElementById('kategoriInput').value, tgl = document.getElementById('tanggalInput').value;
+    const tipe = document.getElementById('tipeInput').value;
+    const nama = document.getElementById('namaInput').value.trim();
+    const nominalAsli = parseFloat(document.getElementById('nominalInputVal').value);
+    const kat = document.getElementById('kategoriInput').value;
+    const tgl = document.getElementById('tanggalInput').value;
+    const isSplit = document.getElementById('isSplitBill').checked;
+
     const shake = id => { const el = document.getElementById(id); el.style.borderColor = 'var(--danger)'; el.style.boxShadow = '0 0 0 3px rgba(248,113,113,.25)'; el.focus(); setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800); };
-    if (!nama) return shake('namaInput'); if (!nominal || nominal <= 0) return shake('nominalInputDisplay'); if (!kat) return shake('kategoriInput'); if (!tgl) return shake('tanggalInput');
+    if (!nama) return shake('namaInput'); if (!nominalAsli || nominalAsli <= 0) return shake('nominalInputDisplay'); if (!kat) return shake('kategoriInput'); if (!tgl) return shake('tanggalInput');
     if (!currentUser) return showToast('toastErr');
+
+    // Kalkulasi Patungan
+    let finalNominal = nominalAsli;
+    let splitNotes = "";
+    if (isSplit && tipe === 'pengeluaran') {
+      const splitCount = parseInt(document.getElementById('splitCount').value) || 2;
+      if (splitCount > 1) {
+        finalNominal = nominalAsli / splitCount;
+        splitNotes = `Patungan 1/${splitCount} dari ${fmtCurrency(nominalAsli)}`;
+      }
+    }
+
     const btn = document.getElementById('btnAdd'); btn.disabled = true; btn.textContent = 'Menyimpan...';
     try {
-      await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), { tipe, nama, nominal, kat, tgl, createdAt: Date.now() });
+      await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses'), { 
+        tipe, 
+        nama, 
+        nominal: finalNominal, 
+        kat, 
+        tgl, 
+        splitNotes, // field baru khusus text patungan
+        createdAt: Date.now() 
+      });
       currentMonthFilter = tgl.substring(0,7); showToast('toastAdd');
+      
+      // Reset form
       document.getElementById('namaInput').value = ''; document.getElementById('nominalInputDisplay').value = ''; document.getElementById('nominalInputVal').value = ''; document.getElementById('kategoriInput').value = '';
+      if(isSplit) { document.getElementById('isSplitBill').checked = false; window.toggleSplitBill(); }
     } catch (err) { showToast('toastErr'); } finally { btn.disabled = false; btn.textContent = 'Simpan Transaksi'; }
   };
 
@@ -778,7 +799,7 @@
   window.eksporCSV = function() {
     if (allData.length === 0) return showModal({ icon: 'ℹ️', title: 'Data Kosong', body: 'Tidak ada data untuk diekspor.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok' });
     const esc = v => { const s = String(v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const rows = allData.map(d => [ esc(d.tipe || 'pengeluaran'), esc(d.nama), esc((katConfig[d.tipe||'pengeluaran'][d.kat] || katConfig[d.tipe||'pengeluaran'].lainnya).label), esc(d.tgl), esc(d.nominal) ].join(','));
+    const rows = allData.map(d => [ esc(d.tipe || 'pengeluaran'), esc(d.nama + (d.splitNotes ? ` (${d.splitNotes})` : '')), esc((katConfig[d.tipe||'pengeluaran'][d.kat] || katConfig[d.tipe||'pengeluaran'].lainnya).label), esc(d.tgl), esc(d.nominal) ].join(','));
     const blob = new Blob(['\uFEFF' + ['Tipe,Nama,Kategori,Tanggal,Nominal'].concat(rows).join('\r\n')], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `pembukuan_cloud_${new Date().toISOString().slice(0, 10)}.csv`; document.body.appendChild(a); a.click(); document.body.removeChild(a); showToast('toastExport');
   };
