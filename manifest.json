@@ -1,6 +1,6 @@
 {
-  "name": "Spent — Pencatat Pengeluaran",
-  "short_name": "Spent",
+  "name": "Spent 2 — Pencatat Pengeluaran",
+  "short_name": "Spent2",
   "description": "Aplikasi pencatat pengeluaran pribadi. Lacak, analisis, dan ekspor data keuangan Anda.",
   "start_url": "./index.html",
   "scope": "./",
