@@ -1,16 +1,16 @@
+// Mengimpor modul Firebase lengkap (ditambah updateDoc untuk update qty stok)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXjaGDcqGOS0zxHObEc4kJN120p62lm4U",
   authDomain: "spent-app-e1141.firebaseapp.com",
-  databaseURL: "https://spent-app-e1141-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "spent-app-e1141",
   storageBucket: "spent-app-e1141.firebasestorage.app",
   messagingSenderId: "113195094216",
   appId: "1:113195094216:web:c735f7eae578efa6b395fd"
-};
+  };
 const appId = 'spent-pwa-local';
 
 const app = initializeApp(firebaseConfig);
@@ -18,12 +18,18 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
+// State Keuangan
 let allData = [];
 let pieChart = null;
 let currentMonthFilter = 'all';
+
+// State Stok Barang
+let allInventory = [];
+
 let currentUser = null;
 let isDataLoaded = false;
 let unsubscribeSnapshot = null;
+let unsubscribeInventory = null;
 
 const geminiApiKey = ""; // Kosongkan agar bisa diisi via form
 
@@ -168,26 +174,37 @@ window.logoutGoogle = async function() { showModal({ icon: '👋', title: 'Kelua
 onAuthStateChanged(auth, (user) => {
   currentUser = user; const loginScreen = document.getElementById('loginScreen'), mainApp = document.getElementById('mainApp'), userProfile = document.getElementById('userProfile');
   if (user) {
-    loginScreen.style.display = 'none'; mainApp.style.display = 'grid'; userProfile.style.display = 'flex';
+    loginScreen.style.display = 'none'; mainApp.style.display = 'flex'; userProfile.style.display = 'flex';
     document.getElementById('userName').textContent = user.displayName ? user.displayName.split(' ')[0] : 'Pengguna';
     document.getElementById('userAvatar').src = user.photoURL || './icon-192.png';
     setupRealtimeListener();
   } else {
     loginScreen.style.display = 'flex'; mainApp.style.display = 'none'; userProfile.style.display = 'none';
-    allData = []; isDataLoaded = false;
+    allData = []; allInventory = []; isDataLoaded = false;
     if (unsubscribeSnapshot) unsubscribeSnapshot();
+    if (unsubscribeInventory) unsubscribeInventory();
     if (pieChart) { pieChart.destroy(); pieChart = null; }
   }
 });
 
 function setupRealtimeListener() {
   if (!currentUser) return;
+  
+  // Listener 1: Keuangan (Expenses)
   const colRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses');
   if (unsubscribeSnapshot) unsubscribeSnapshot();
   unsubscribeSnapshot = onSnapshot(colRef, (snapshot) => { isDataLoaded = true; allData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); refreshUI(); }, (error) => { console.error(error); showToast('toastErr'); });
+
+  // Listener 2: Stok Pribadi (Inventory)
+  const invRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory');
+  if (unsubscribeInventory) unsubscribeInventory();
+  unsubscribeInventory = onSnapshot(invRef, (snapshot) => {
+    allInventory = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderInventory();
+  });
 }
 
-// ── Rendering UI ──
+// ── Rendering UI Keuangan ──
 window.applyMonthFilter = function() { currentMonthFilter = document.getElementById('monthFilter').value; refreshUI(); }
 function getFilteredData() { return currentMonthFilter === 'all' ? allData : allData.filter(d => d.tgl.startsWith(currentMonthFilter)); }
 
@@ -271,7 +288,7 @@ function updateChart(data) {
   }
 }
 
-// ── CRUD Firebase ──
+// ── CRUD Firebase (Keuangan) ──
 window.tambahTransaksi = async function() {
   const tipe = document.getElementById('tipeInput').value, nama = document.getElementById('namaInput').value.trim(), nominalAsli = parseFloat(document.getElementById('nominalInputVal').value), kat = document.getElementById('kategoriInput').value, tgl = document.getElementById('tanggalInput').value, isSplit = document.getElementById('isSplitBill').checked;
   const shake = id => { const el = document.getElementById(id); el.style.borderColor = 'var(--danger)'; el.style.boxShadow = '0 0 0 3px rgba(248,113,113,.25)'; el.focus(); setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1800); };
@@ -295,7 +312,104 @@ window.tambahTransaksi = async function() {
 
 window.konfirmasiHapus = function(id, nama) { showModal({ icon: '⚠️', title: 'Hapus Transaksi?', body: `Hapus <strong>"${nama}"</strong> dari riwayat?`, btnConfirmText: 'Hapus Data', btnConfirmClass: 'btn-confirm-danger', onConfirm: async () => { try { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'expenses', id)); showToast('toastDel'); } catch(e) { showToast('toastErr'); } } }); };
 
-// ── Ekspor & Impor ──
+
+// ── CRUD Firebase (STOK PRIBADI / INVENTORY) ──
+function renderInventory() {
+  const grid = document.getElementById('stokGrid');
+  if (!grid) return;
+  
+  if (allInventory.length === 0) {
+    grid.innerHTML = `<div class="empty" style="grid-column: 1 / -1;"><div class="icon">📦</div><p>Belum ada stok barang. Tambahkan di form atas!</p></div>`;
+    return;
+  }
+
+  const sorted = [...allInventory].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+  grid.innerHTML = sorted.map(item => {
+    let statusCls = 'aman';
+    if (item.jumlah === 0) statusCls = 'habis';
+    else if (item.jumlah <= 3) statusCls = 'tipis';
+
+    return `
+      <div class="stok-card ${statusCls}">
+        <div class="stok-header">
+          <span class="stok-title">${escHtml(item.nama)}</span>
+          <button class="btn-del-icon" title="Hapus" onclick="hapusStok('${item.id}', '${escHtml(item.nama).replace(/'/g,"\\'")}')">🗑</button>
+        </div>
+        <div class="stok-body">
+          <button class="stok-btn minus" onclick="updateStok('${item.id}', ${item.jumlah}, -1)">-</button>
+          <div class="stok-qty">${item.jumlah} <small>${escHtml(item.satuan)}</small></div>
+          <button class="stok-btn plus" onclick="updateStok('${item.id}', ${item.jumlah}, 1)">+</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.tambahStok = async function() {
+  const nama = document.getElementById('stokNama').value.trim();
+  const jumlah = parseInt(document.getElementById('stokJumlah').value) || 0;
+  const satuan = document.getElementById('stokSatuan').value.trim() || 'pcs';
+
+  if (!nama) {
+    const el = document.getElementById('stokNama');
+    el.style.borderColor = 'var(--danger)';
+    setTimeout(() => el.style.borderColor = '', 1800);
+    return;
+  }
+
+  if (!currentUser) return showToast('toastErr');
+
+  const btn = document.getElementById('btnTambahStok');
+  btn.disabled = true; btn.textContent = 'Menyimpan...';
+
+  try {
+    await addDoc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory'), {
+      nama, jumlah, satuan, createdAt: Date.now()
+    });
+    document.getElementById('stokNama').value = '';
+    document.getElementById('stokJumlah').value = '';
+    document.getElementById('stokSatuan').value = '';
+    showToast('toastAdd');
+  } catch(e) {
+    console.error(e);
+    showToast('toastErr');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Simpan Barang';
+  }
+};
+
+window.updateStok = async function(id, currentJumlah, delta) {
+  const newJumlah = currentJumlah + delta;
+  if (newJumlah < 0) return; // Mencegah stok minus
+
+  if (!currentUser) return;
+
+  try {
+    await updateDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', id), {
+      jumlah: newJumlah
+    });
+  } catch (e) {
+    console.error(e); showToast('toastErr');
+  }
+};
+
+window.hapusStok = function(id, nama) {
+  showModal({
+    icon: '⚠️', title: 'Hapus Barang?',
+    body: `Yakin ingin menghapus <strong>"${nama}"</strong> dari daftar stok?`,
+    btnConfirmText: 'Hapus', btnConfirmClass: 'btn-confirm-danger',
+    onConfirm: async () => {
+      try {
+        await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'inventory', id));
+        showToast('toastDel');
+      } catch(e) { showToast('toastErr'); }
+    }
+  });
+};
+
+
+// ── Ekspor & Impor (Keuangan) ──
 window.eksporCSV = function() {
   if (allData.length === 0) return showModal({ icon: 'ℹ️', title: 'Data Kosong', body: 'Tidak ada data.', btnConfirmText: 'Tutup', btnConfirmClass: 'btn-confirm-ok' });
   const esc = v => { const s = String(v); return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
@@ -355,7 +469,7 @@ function showModal({ icon, title, body, btnCancelText, btnConfirmText, btnConfir
 function showToast(id) { const t = document.getElementById(id); t.classList.remove('show'); void t.offsetWidth; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') window.tambahTransaksi(); });
 
-// Registrasi Service Worker PWA (Diletakkan di dalam app.js agar HTML bersih)
+// Registrasi Service Worker PWA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./service-worker.js', { scope: './' }).catch(() => {});
 }

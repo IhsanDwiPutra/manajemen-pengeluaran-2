@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#7f6af8">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,12 +10,10 @@
   <meta name="apple-mobile-web-app-title" content="Spent">
   <link rel="apple-touch-icon" href="./icon-512.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
-
-  <title>Catatan Keuangan & AI</title>
+  <title>Spent & Pantry</title>
   
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-  
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,9 +21,8 @@
 <header>
   <div>
     <div class="logo">SPENT<span>.</span></div>
-    <div class="tagline">Manajer Keuangan Pribadi</div>
+    <div class="tagline">Keuangan & Stok Pribadi</div>
   </div>
-  
   <div class="user-profile" id="userProfile">
     <div class="user-info">
       <span class="user-name" id="userName">User</span>
@@ -39,178 +35,163 @@
 <div class="login-screen" id="loginScreen">
   <div class="ls-icon">💳</div>
   <h1 class="ls-title">Selamat Datang di SPENT.</h1>
-  <p class="ls-desc">Satu tempat aman untuk mencatat, melacak, dan menganalisis arus kas keuangan Anda. Sinkronisasi otomatis ke semua perangkat.</p>
-  
+  <p class="ls-desc">Satu tempat aman untuk mencatat, melacak arus kas keuangan, dan memantau stok barang kos Anda.</p>
   <button class="btn-google" id="btnLogin" onclick="loginGoogle()">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
     Masuk dengan Google
   </button>
 </div>
 
-<div class="wrapper" id="mainApp">
+<!-- APLIKASI UTAMA (Container yang dikontrol oleh app.js) -->
+<div id="mainApp" style="display: none; flex-direction: column; max-width: 860px; margin: 0 auto; width: 100%;">
 
-  <div class="total-card">
-    <div class="total-info">
-      <div class="label" id="totalLabel">Sisa Saldo Anda</div>
-      <div class="amount" id="totalAmount">Rp 0</div>
-      
-      <div class="cashflow-summary">
-        <div class="cf-item cf-in">
-          <span class="cf-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></span>
-          <span id="totMasuk">Rp 0</span>
-        </div>
-        <div class="cf-item cf-out">
-          <span class="cf-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span>
-          <span id="totKeluar">Rp 0</span>
-        </div>
-      </div>
-    </div>
+  <!-- TABS NAVIGASI -->
+  <div class="tabs-container">
+    <button class="tab-btn active" id="btnTabKeuangan" onclick="switchTab('keuangan')">💳 Keuangan</button>
+    <button class="tab-btn" id="btnTabStok" onclick="switchTab('stok')">📦 Stok Pribadi</button>
+  </div>
+
+  <!-- ==================== TAB 1: KEUANGAN ==================== -->
+  <div class="wrapper" id="tabKeuangan" style="display: grid; gap: 1.5rem; margin-top: 1rem;">
     
-    <div class="filter-wrapper">
-      <label for="monthFilter" class="filter-label">Filter Bulan</label>
-      <select id="monthFilter" class="month-filter" onchange="applyMonthFilter()">
-        <option value="all">Semua Waktu</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-card">
-      <div class="s-label">Jumlah Transaksi</div>
-      <div class="s-val" id="txCount">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="s-label">Pemasukan Terbesar</div>
-      <div class="s-val green" id="maxIn">Rp 0</div>
-    </div>
-    <div class="stat-card">
-      <div class="s-label">Pengeluaran Terbesar</div>
-      <div class="s-val red" id="maxOut">Rp 0</div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-header-wrap">
-      <h2 class="form-title">+ Tambah Transaksi</h2>
-      <div class="ai-tools">
-        <button class="btn-scan" onclick="document.getElementById('receiptScanner').click()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h5v5"/><path d="M9.5 20h-5v-5"/><path d="M4 14.5v-5h5"/><path d="M20 9.5v5h-5"/><circle cx="12" cy="12" r="3"/></svg>
-          Scan Struk AI
-        </button>
-        <button class="btn-api-key" onclick="promptApiKey()" title="Pengaturan API Key">🔓</button>
-      </div>
-    </div>
-    <input type="file" id="receiptScanner" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptScan(event)"/>
-
-    <div class="form-grid">
-      <div class="form-group full">
-        <label for="tipeInput">Jenis Transaksi</label>
-        <select id="tipeInput" onchange="updateKategoriOptions()">
-          <option value="pengeluaran">📉 Pengeluaran (Uang Keluar)</option>
-          <option value="pemasukan">📈 Pemasukan (Uang Masuk)</option>
-        </select>
-      </div>
-
-      <div class="form-group full">
-        <label for="namaInput">Nama atau Catatan</label>
-        <input type="text" id="namaInput" placeholder="mis. Makan siang, Gaji bulanan…" maxlength="60"/>
-      </div>
-      
-      <div class="form-group">
-        <label for="nominalInputDisplay">Nominal / Total Tagihan (Rp)</label>
-        <div class="input-group">
-          <span class="input-prefix">Rp</span>
-          <input type="text" inputmode="numeric" id="nominalInputDisplay" class="input-with-prefix" placeholder="0" oninput="formatRupiahInput(this)"/>
-          <input type="hidden" id="nominalInputVal" />
+    <div class="total-card">
+      <div class="total-info">
+        <div class="label" id="totalLabel">Sisa Saldo Anda</div>
+        <div class="amount" id="totalAmount">Rp 0</div>
+        <div class="cashflow-summary">
+          <div class="cf-item cf-in"><span class="cf-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></span><span id="totMasuk">Rp 0</span></div>
+          <div class="cf-item cf-out"><span class="cf-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg></span><span id="totKeluar">Rp 0</span></div>
         </div>
       </div>
-      
-      <div class="form-group">
-        <label for="kategoriInput">Kategori</label>
-        <select id="kategoriInput"></select>
+      <div class="filter-wrapper">
+        <label for="monthFilter" class="filter-label">Filter Bulan</label>
+        <select id="monthFilter" class="month-filter" onchange="applyMonthFilter()"><option value="all">Semua Waktu</option></select>
       </div>
+    </div>
 
-      <div class="form-group full" id="splitBillContainer">
-        <label class="split-toggle">
-          <input type="checkbox" id="isSplitBill" onchange="toggleSplitBill()">
-          <span>Bagi Rata (Split Bill) / Patungan?</span>
-        </label>
-        
-        <div class="split-details" id="splitDetails">
-          <label for="splitCount">Dibagi berapa orang? (Termasuk Anda)</label>
-          <input type="number" id="splitCount" value="2" min="2" max="100" oninput="calculateSplit()"/>
-          <div class="split-result">
-            Total Tagihan: <span id="splitTotalDisplay">Rp 0</span><br>
-            <strong>Nominal Porsi Anda: <span id="splitPortionDisplay">Rp 0</span></strong>
+    <div class="stats-row">
+      <div class="stat-card"><div class="s-label">Jumlah Transaksi</div><div class="s-val" id="txCount">0</div></div>
+      <div class="stat-card"><div class="s-label">Pemasukan Terbesar</div><div class="s-val green" id="maxIn">Rp 0</div></div>
+      <div class="stat-card"><div class="s-label">Pengeluaran Terbesar</div><div class="s-val red" id="maxOut">Rp 0</div></div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-header-wrap">
+        <h2 class="form-title">+ Tambah Transaksi</h2>
+        <div class="ai-tools">
+          <button class="btn-scan" onclick="document.getElementById('receiptScanner').click()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h5v5"/><path d="M9.5 20h-5v-5"/><path d="M4 14.5v-5h5"/><path d="M20 9.5v5h-5"/><circle cx="12" cy="12" r="3"/></svg> Scan Struk AI
+          </button>
+          <button class="btn-api-key" onclick="promptApiKey()" title="Pengaturan API Key">🔓</button>
+        </div>
+      </div>
+      <input type="file" id="receiptScanner" accept="image/*" capture="environment" style="display:none" onchange="handleReceiptScan(event)"/>
+
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="tipeInput">Jenis Transaksi</label>
+          <select id="tipeInput" onchange="updateKategoriOptions()">
+            <option value="pengeluaran">📉 Pengeluaran (Uang Keluar)</option>
+            <option value="pemasukan">📈 Pemasukan (Uang Masuk)</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label for="namaInput">Nama atau Catatan</label>
+          <input type="text" id="namaInput" placeholder="mis. Makan siang, Gaji bulanan…" maxlength="60"/>
+        </div>
+        <div class="form-group">
+          <label for="nominalInputDisplay">Nominal / Total Tagihan (Rp)</label>
+          <div class="input-group">
+            <span class="input-prefix">Rp</span>
+            <input type="text" inputmode="numeric" id="nominalInputDisplay" class="input-with-prefix" placeholder="0" oninput="formatRupiahInput(this)"/>
+            <input type="hidden" id="nominalInputVal" />
           </div>
         </div>
+        <div class="form-group">
+          <label for="kategoriInput">Kategori</label>
+          <select id="kategoriInput"></select>
+        </div>
+        <div class="form-group full" id="splitBillContainer">
+          <label class="split-toggle">
+            <input type="checkbox" id="isSplitBill" onchange="toggleSplitBill()">
+            <span>Bagi Rata (Split Bill) / Patungan?</span>
+          </label>
+          <div class="split-details" id="splitDetails">
+            <label for="splitCount">Dibagi berapa orang? (Termasuk Anda)</label>
+            <input type="number" id="splitCount" value="2" min="2" max="100" oninput="calculateSplit()"/>
+            <div class="split-result">Total Tagihan: <span id="splitTotalDisplay">Rp 0</span><br><strong>Nominal Porsi Anda: <span id="splitPortionDisplay">Rp 0</span></strong></div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label for="tanggalInput">Tanggal</label>
+          <input type="date" id="tanggalInput"/>
+        </div>
+        <button class="btn-add" id="btnAdd" onclick="tambahTransaksi()">Simpan Transaksi</button>
       </div>
-      
-      <div class="form-group full">
-        <label for="tanggalInput">Tanggal</label>
-        <input type="date" id="tanggalInput"/>
-      </div>
-      
-      <button class="btn-add" id="btnAdd" onclick="tambahTransaksi()">Simpan Transaksi</button>
     </div>
-  </div>
 
-  <div class="chart-card">
-    <div class="chart-header">
-      <div class="chart-title">Distribusi Pengeluaran</div>
+    <div class="chart-card">
+      <div class="chart-header"><div class="chart-title">Distribusi Pengeluaran</div></div>
+      <div class="chart-body" id="chartBody"><div class="chart-empty" id="chartEmpty"><div class="icon">📊</div><p>Memuat grafik...</p></div></div>
     </div>
-    <div class="chart-body" id="chartBody">
-      <div class="chart-empty" id="chartEmpty">
-        <div class="icon">📊</div>
-        <p>Memuat grafik...</p>
+
+    <div class="table-card">
+      <div class="table-header"><div class="table-title">Riwayat Transaksi</div><span class="count-badge" id="countBadge">0 entri</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nama & Catatan</th><th>Kategori</th><th>Tanggal</th><th style="text-align:right">Nominal</th><th></th></tr></thead>
+          <tbody id="tableBody"><tr><td colspan="5"><div class="empty"><div class="loader"></div><p>Menyinkronkan...</p></div></td></tr></tbody>
+        </table>
       </div>
     </div>
-  </div>
 
-  <div class="table-card">
-    <div class="table-header">
-      <div class="table-title">Riwayat Transaksi</div>
-      <span class="count-badge" id="countBadge">0 entri</span>
+    <div class="tools-card">
+      <div class="tools-header"><span class="tools-icon">⚙</span><div class="tools-title">Manajemen Data</div></div>
+      <div class="tools-grid">
+        <button class="tool-btn btn-export" id="btnExport" onclick="eksporCSV()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Ekspor Data</button>
+        <button class="tool-btn btn-import" id="btnImport" onclick="triggerImport()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Impor Data</button>
+      </div>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Nama & Catatan</th>
-            <th>Kategori</th>
-            <th>Tanggal</th>
-            <th style="text-align:right">Nominal</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tableBody">
-          <tr><td colspan="5"><div class="empty"><div class="loader"></div><p>Menyinkronkan data dari Cloud...</p></div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
 
-  <div class="tools-card">
-    <div class="tools-header">
-      <span class="tools-icon">⚙</span>
-      <div class="tools-title">Manajemen Data</div>
+  </div> <!-- End Tab Keuangan -->
+
+  <!-- ==================== TAB 2: STOK PRIBADI ==================== -->
+  <div class="wrapper" id="tabStok" style="display: none; gap: 1.5rem; margin-top: 1rem;">
+    
+    <div class="form-card">
+      <h2 class="form-title">+ Tambah Stok Pribadi</h2>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label for="stokNama">Nama Barang</label>
+          <input type="text" id="stokNama" placeholder="mis. Indomie Goreng, Telur Ayam..." />
+        </div>
+        <div class="form-group">
+          <label for="stokJumlah">Jumlah Saat Ini</label>
+          <input type="number" id="stokJumlah" placeholder="0" min="0" />
+        </div>
+        <div class="form-group">
+          <label for="stokSatuan">Satuan</label>
+          <input type="text" id="stokSatuan" placeholder="mis. bungkus, butir, botol" />
+        </div>
+        <button class="btn-add" id="btnTambahStok" onclick="tambahStok()">Simpan Barang</button>
+      </div>
     </div>
-    <div class="tools-grid">
-      <button class="tool-btn btn-export" id="btnExport" onclick="eksporCSV()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Ekspor Data (CSV)
-      </button>
-      <button class="tool-btn btn-import" id="btnImport" onclick="triggerImport()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Impor Data (CSV)
-      </button>
+
+    <!-- Container Grid yang akan diisi otomatis oleh JavaScript -->
+    <div class="stok-grid" id="stokGrid">
+      <div class="empty" style="grid-column: 1 / -1;">
+        <div class="loader"></div>
+        <p>Memuat Stok dari Cloud...</p>
+      </div>
     </div>
-  </div>
+
+  </div> <!-- End Tab Stok -->
 
 </div>
 
 <input type="file" id="csvFileInput" accept=".csv" style="display:none" onchange="prosesImportCSV(event)"/>
 
+<!-- Modals & Toasts -->
 <div class="toast-container">
   <div class="toast" id="toastAdd">✓ Data tersimpan di Cloud</div>
   <div class="toast" id="toastDel"    style="border-color:var(--danger);color:var(--danger);">🗑 Data dihapus dari Cloud</div>
@@ -221,24 +202,32 @@
   <div class="toast" id="toastAi"     style="border-color:#8b5cf6;color:#8b5cf6;">✨ Berhasil membaca struk!</div>
 </div>
 
-<div class="modal-overlay" id="appModal">
-  <div class="modal-box">
-    <div class="modal-icon" id="modalIcon">ℹ️</div>
-    <h3 class="modal-title" id="modalTitle">Judul</h3>
-    <p class="modal-body" id="modalBody">Pesan di sini</p>
-    <div class="modal-actions" id="modalActions"></div>
-  </div>
-</div>
+<div class="modal-overlay" id="appModal"><div class="modal-box"><div class="modal-icon" id="modalIcon">ℹ️</div><h3 class="modal-title" id="modalTitle">Judul</h3><p class="modal-body" id="modalBody">Pesan</p><div class="modal-actions" id="modalActions"></div></div></div>
+<div class="modal-overlay" id="aiModal"><div class="modal-box" style="padding: 3rem 2rem;"><div class="loader loader-ai"></div><h3 class="modal-title" style="margin-top:1rem;">AI Sedang Membaca...</h3><p class="modal-body" style="margin-bottom:0;">Menganalisis foto struk Anda, mohon tunggu sebentar.</p></div></div>
 
-<div class="modal-overlay" id="aiModal">
-  <div class="modal-box" style="padding: 3rem 2rem;">
-    <div class="loader loader-ai"></div>
-    <h3 class="modal-title" style="margin-top:1rem;">AI Sedang Membaca...</h3>
-    <p class="modal-body" style="margin-bottom:0;">Menganalisis foto struk Anda, mohon tunggu sebentar.</p>
-  </div>
-</div>
+<!-- Script UI Tab Sederhana -->
+<script>
+  function switchTab(tabName) {
+    const tabK = document.getElementById('tabKeuangan');
+    const tabS = document.getElementById('tabStok');
+    const btnK = document.getElementById('btnTabKeuangan');
+    const btnS = document.getElementById('btnTabStok');
+
+    if(tabName === 'keuangan') {
+      tabK.style.display = 'grid';
+      tabS.style.display = 'none';
+      btnK.classList.add('active');
+      btnS.classList.remove('active');
+    } else {
+      tabK.style.display = 'none';
+      tabS.style.display = 'flex';
+      tabS.style.flexDirection = 'column';
+      btnK.classList.remove('active');
+      btnS.classList.add('active');
+    }
+  }
+</script>
 
 <script type="module" src="app.js"></script>
-
 </body>
 </html>

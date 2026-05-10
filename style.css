@@ -218,3 +218,31 @@ td { padding: .95rem 1.8rem; font-size: .85rem; vertical-align: middle; }
   .tools-grid { grid-template-columns: 1fr; } .toast-container { bottom: 1rem; right: 1rem; left: 1rem; align-items: center; }
   .user-name { display: none; } .chart-body { grid-template-columns: 1fr; } .chart-canvas-wrap { max-width: 220px; } .legend-val { display: none; }
 }
+
+/* ── TABS NAVIGASI ── */
+.tabs-container { display: flex; gap: 0.5rem; background: var(--surface); padding: 0.5rem; border-radius: 12px; border: 1px solid var(--border); animation: slideUp 0.5s ease; margin-bottom: 0.5rem; }
+.tab-btn { flex: 1; background: transparent; border: none; color: var(--muted); font-family: var(--font-head); font-weight: 700; font-size: 0.85rem; padding: 0.85rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.05em; }
+.tab-btn.active { background: rgba(127,106,248,.15); color: var(--accent2); }
+.tab-btn:hover:not(.active) { background: rgba(255,255,255,.05); color: var(--text); }
+
+/* ── STOK GRID & CARDS ── */
+.stok-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; animation: slideUp 0.5s 0.2s ease both; }
+.stok-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15);}
+.stok-card:hover { transform: translateY(-3px); }
+.stok-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+.stok-card.aman::before { background: var(--success); box-shadow: 0 0 10px var(--success); }
+.stok-card.tipis::before { background: var(--warning); box-shadow: 0 0 10px var(--warning); }
+.stok-card.habis::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+.stok-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.stok-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; color: var(--text); letter-spacing: 0.02em;}
+.stok-body { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); padding: 0.6rem; border-radius: 12px; border: 1px solid var(--border); }
+.stok-btn { width: 38px; height: 38px; border-radius: 8px; border: none; font-size: 1.4rem; font-weight: bold; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+.stok-btn.minus { background: rgba(248,113,113,.1); color: var(--danger); }
+.stok-btn.plus { background: rgba(52,211,153,.1); color: var(--success); }
+.stok-btn:hover { transform: scale(1.08); filter: brightness(1.2); }
+.stok-btn:active { transform: scale(0.95); }
+.stok-qty { text-align: center; font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; color: var(--text); display: flex; flex-direction: column; line-height: 1; }
+.stok-qty small { font-family: var(--font-head); font-size: 0.65rem; color: var(--muted); font-weight: 600; margin-top: 0.3rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.btn-del-icon { background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--muted); cursor: pointer; font-size: 0.9rem; transition: all 0.2s; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;}
+.btn-del-icon:hover { color: var(--danger); background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); }

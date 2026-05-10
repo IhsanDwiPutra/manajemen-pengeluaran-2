@@ -1,0 +1,10 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyAXjaGDcqGOS0zxHObEc4kJN120p62lm4U",
+  authDomain: "spent-app-e1141.firebaseapp.com",
+  projectId: "spent-app-e1141",
+  storageBucket: "spent-app-e1141.firebasestorage.app",
+  messagingSenderId: "113195094216",
+  appId: "1:113195094216:web:c735f7eae578efa6b395fd"
+};
+
+const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${savedKey}`;
